@@ -29,6 +29,7 @@ public class DataStore {
     public static final Map<String, hpms.model.DoctorSchedule> doctorSchedules = new LinkedHashMap<>();
     public static final Map<String, hpms.model.Discharge> discharges = new LinkedHashMap<>();
     public static final Map<String, hpms.model.Communication> communications = new LinkedHashMap<>();
+    public static final Map<String, hpms.model.Service> services = new LinkedHashMap<>();
     
     public static final List<String> activityLog = new ArrayList<>();
     public static final Set<String> departments = new LinkedHashSet<>(Arrays.asList("Cardiology", "Neurology", "Orthopedics", "Pediatrics", "Oncology", "ER", "Admin", "Nursing", "Billing"));
