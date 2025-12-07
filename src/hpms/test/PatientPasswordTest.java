@@ -1,0 +1,25 @@
+package hpms.test;
+
+import hpms.model.Patient;
+import hpms.service.PatientService;
+import hpms.auth.AuthService;
+import hpms.util.DataStore;
+import java.time.LocalDateTime;
+
+public class PatientPasswordTest {
+    public static void main(String[] args) throws Exception {
+        // create patient via service so it registers in DataStore
+        java.util.List<String> out = PatientService.add("Test Patient", "30", "Male", "555-1111", "Some Address");
+        System.out.println(out);
+        String created = out.get(0);
+        String id = created.split(" ")[2];
+        // generate password and create patient portal account
+        String pwd = AuthService.generateRandomPasswordForUI();
+        System.out.println("Registering patient user " + id + " with password " + pwd);
+        System.out.println(AuthService.createPatientAccount(id, pwd));
+        // verify
+        boolean ok = AuthService.verifyCredentials(id, pwd);
+        if (!ok) throw new RuntimeException("Verify failed");
+        System.out.println("Verified OK");
+    }
+}
