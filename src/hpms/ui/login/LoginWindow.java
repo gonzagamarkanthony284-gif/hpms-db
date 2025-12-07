@@ -194,12 +194,8 @@ public class LoginWindow extends JFrame {
     }
 
     private void openDoctorSignUp() {
-        try {
-            String doctorSignupPath = "file:///" + System.getProperty("user.dir").replace("\\", "/") + "/doctor_signup.html";
-            java.awt.Desktop.getDesktop().browse(new java.net.URI(doctorSignupPath));
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Unable to open Doctor Sign-Up page. Please check if doctor_signup.html exists.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        DoctorSignUpWindow signUpWindow = new DoctorSignUpWindow();
+        signUpWindow.setVisible(true);
     }
 
     public static void seedRooms() {
