@@ -32,6 +32,9 @@ public class Patient {
     // uploaded files (paths) for records
     public java.util.List<String> attachmentPaths = new java.util.ArrayList<>();
 
+    // Medical file attachments (managed by AttachmentService)
+    public java.util.List<FileAttachment> fileAttachments = new java.util.ArrayList<>();
+
     // Clinical / hospital-entered
     public Double heightCm = null;
     public Double weightKg = null;

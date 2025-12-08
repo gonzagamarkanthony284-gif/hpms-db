@@ -6,6 +6,7 @@ import hpms.service.*;
 import hpms.util.*;
 import hpms.ui.components.SectionHeader;
 import hpms.ui.components.Theme;
+import hpms.ui.components.DoctorFilterPanel;
 
 import javax.swing.*;
 import hpms.ui.staff.StaffRegistrationForm;
@@ -18,6 +19,7 @@ public class StaffPanel extends JPanel {
     private DefaultTableModel doctorModel, nurseModel, cashierModel;
     private JTable doctorTable, nurseTable, cashierTable;
     private JLabel statsLabel;
+    private DoctorFilterPanel doctorFilterPanel;
 
     public StaffPanel() {
         setLayout(new BorderLayout());
@@ -55,7 +57,8 @@ public class StaffPanel extends JPanel {
         // Ensure panel refreshes when it becomes visible again
         this.addHierarchyListener(evt -> {
             if ((evt.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0) {
-                if (this.isShowing()) SwingUtilities.invokeLater(this::refresh);
+                if (this.isShowing())
+                    SwingUtilities.invokeLater(this::refresh);
             }
         });
     }
@@ -64,11 +67,28 @@ public class StaffPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Theme.BG);
 
+        // Add filter panel for doctors only
+        if ("DOCTOR".equals(role)) {
+            doctorFilterPanel = new DoctorFilterPanel();
+            doctorFilterPanel.setFilterChangeListener((dept, specialty) -> {
+                applyDoctorFilters(dept, specialty);
+            });
+            panel.add(doctorFilterPanel, BorderLayout.NORTH);
+        }
+
         // Create table model for this role
-        DefaultTableModel model = new DefaultTableModel(
-            new String[]{"Staff ID", "Name", "Department", "Details", "Status", "Joined Date"}, 0
-        ) {
-            public boolean isCellEditable(int r, int c) { return false; }
+        String[] columnNames;
+        if ("DOCTOR".equals(role)) {
+            columnNames = new String[] { "Staff ID", "Name", "Department", "Expertise", "Details", "Status",
+                    "Joined Date" };
+        } else {
+            columnNames = new String[] { "Staff ID", "Name", "Department", "Details", "Status", "Joined Date" };
+        }
+
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
 
         // Store model reference
@@ -86,9 +106,19 @@ public class StaffPanel extends JPanel {
         table.getColumnModel().getColumn(0).setPreferredWidth(80);
         table.getColumnModel().getColumn(1).setPreferredWidth(140);
         table.getColumnModel().getColumn(2).setPreferredWidth(120);
-        table.getColumnModel().getColumn(3).setPreferredWidth(150);
-        table.getColumnModel().getColumn(4).setPreferredWidth(80);
-        table.getColumnModel().getColumn(5).setPreferredWidth(120);
+
+        // Column 3 (Expertise) only for doctors
+        if ("DOCTOR".equals(role)) {
+            table.getColumnModel().getColumn(3).setPreferredWidth(120);
+            table.getColumnModel().getColumn(4).setPreferredWidth(130);
+            table.getColumnModel().getColumn(5).setPreferredWidth(80);
+            table.getColumnModel().getColumn(6).setPreferredWidth(120);
+        } else {
+            // For non-doctor roles, Details is column 3
+            table.getColumnModel().getColumn(3).setPreferredWidth(150);
+            table.getColumnModel().getColumn(4).setPreferredWidth(80);
+            table.getColumnModel().getColumn(5).setPreferredWidth(120);
+        }
 
         // Store table reference
         if ("DOCTOR".equals(role)) {
@@ -147,11 +177,11 @@ public class StaffPanel extends JPanel {
         panel.add(addBtn);
         panel.add(editBtn);
         panel.add(deleteBtn);
-        
+
         if (AuthService.current != null && AuthService.current.role == UserRole.ADMIN) {
             panel.add(regUserBtn);
         }
-        
+
         panel.add(viewBtn);
 
         return panel;
@@ -169,30 +199,42 @@ public class StaffPanel extends JPanel {
     private void addStaffDialog() {
         StaffRegistrationForm form = new StaffRegistrationForm();
         form.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override public void windowClosed(java.awt.event.WindowEvent e) { refresh(); }
-            @Override public void windowClosing(java.awt.event.WindowEvent e) { refresh(); }
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                refresh();
+            }
+
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                refresh();
+            }
         });
         form.setVisible(true);
     }
 
     private JTable getSelectedRoleTable() {
         int selectedIndex = tabbedPane.getSelectedIndex();
-        if (selectedIndex == 0) return doctorTable;
-        if (selectedIndex == 1) return nurseTable;
-        if (selectedIndex == 2) return cashierTable;
+        if (selectedIndex == 0)
+            return doctorTable;
+        if (selectedIndex == 1)
+            return nurseTable;
+        if (selectedIndex == 2)
+            return cashierTable;
         return null;
     }
 
     private void editStaff() {
         JTable table = getSelectedRoleTable();
         if (table == null) {
-            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a staff member to edit", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a staff member to edit", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -200,7 +242,8 @@ public class StaffPanel extends JPanel {
         String staffId = model.getValueAt(row, 0).toString();
         Staff staff = DataStore.staff.get(staffId);
 
-        if (staff == null) return;
+        if (staff == null)
+            return;
 
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Edit Staff", true);
         dialog.setSize(520, 520);
@@ -212,50 +255,73 @@ public class StaffPanel extends JPanel {
         c.insets = new Insets(8, 8, 8, 8);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        c.gridx = 0; c.gridy = 0; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0.3;
         panel.add(new JLabel("Name"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JTextField nameField = new JTextField(staff.name);
         panel.add(nameField, c);
 
-        c.gridx = 0; c.gridy = 1; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.3;
         panel.add(new JLabel("Department"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JComboBox<String> deptCombo = new JComboBox<>(DataStore.departments.toArray(new String[0]));
         deptCombo.setSelectedItem(staff.department);
         panel.add(deptCombo, c);
 
-        c.gridx = 0; c.gridy = 2; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 2;
+        c.weightx = 0.3;
         panel.add(new JLabel("Specialization"), c);
-        c.gridx = 1; c.weightx = 0.7;
-        JTextField specField = new JTextField(staff.specialty==null?"":staff.specialty);
+        c.gridx = 1;
+        c.weightx = 0.7;
+        JTextField specField = new JTextField(staff.specialty == null ? "" : staff.specialty);
         panel.add(specField, c);
 
-        c.gridx = 0; c.gridy = 3; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.weightx = 0.3;
         panel.add(new JLabel("Phone"), c);
-        c.gridx = 1; c.weightx = 0.7;
-        JTextField phoneField = new JTextField(staff.phone==null?"":staff.phone);
+        c.gridx = 1;
+        c.weightx = 0.7;
+        JTextField phoneField = new JTextField(staff.phone == null ? "" : staff.phone);
         panel.add(phoneField, c);
 
-        c.gridx = 0; c.gridy = 4; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 4;
+        c.weightx = 0.3;
         panel.add(new JLabel("Email"), c);
-        c.gridx = 1; c.weightx = 0.7;
-        JTextField emailField = new JTextField(staff.email==null?"":staff.email);
+        c.gridx = 1;
+        c.weightx = 0.7;
+        JTextField emailField = new JTextField(staff.email == null ? "" : staff.email);
         panel.add(emailField, c);
 
-        c.gridx = 0; c.gridy = 5; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 5;
+        c.weightx = 0.3;
         panel.add(new JLabel("License #"), c);
-        c.gridx = 1; c.weightx = 0.7;
-        JTextField licenseField = new JTextField(staff.licenseNumber==null?"":staff.licenseNumber);
+        c.gridx = 1;
+        c.weightx = 0.7;
+        JTextField licenseField = new JTextField(staff.licenseNumber == null ? "" : staff.licenseNumber);
         panel.add(licenseField, c);
 
-        c.gridx = 0; c.gridy = 6; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 6;
+        c.weightx = 0.3;
         panel.add(new JLabel("Qualifications"), c);
-        c.gridx = 1; c.weightx = 0.7; c.weighty = 1.0; c.fill = GridBagConstraints.BOTH;
+        c.gridx = 1;
+        c.weightx = 0.7;
+        c.weighty = 1.0;
+        c.fill = GridBagConstraints.BOTH;
         JTextArea qualsArea = new JTextArea(3, 30);
         qualsArea.setLineWrap(true);
         qualsArea.setWrapStyleWord(true);
-        qualsArea.setText(staff.qualifications==null?"":staff.qualifications);
+        qualsArea.setText(staff.qualifications == null ? "" : staff.qualifications);
         panel.add(new JScrollPane(qualsArea), c);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
@@ -274,22 +340,34 @@ public class StaffPanel extends JPanel {
             String lic = licenseField.getText().trim();
 
             if (nm.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Name cannot be empty", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Name cannot be empty", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
             if (!email.isEmpty() && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                JOptionPane.showMessageDialog(dialog, "Please provide a valid email address.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please provide a valid email address.", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
             if (!phone.isEmpty() && !phone.matches("^[0-9+()\\-\\s]{7,25}$")) {
-                JOptionPane.showMessageDialog(dialog, "Please provide a valid phone number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please provide a valid phone number.", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             for (Staff other : DataStore.staff.values()) {
-                if (other.id.equals(staff.id)) continue;
-                if (!email.isEmpty() && email.equalsIgnoreCase(other.email)) { JOptionPane.showMessageDialog(dialog, "Another staff member already uses that email.", "Validation Error", JOptionPane.WARNING_MESSAGE); return; }
-                if (!lic.isEmpty() && lic.equalsIgnoreCase(other.licenseNumber)) { JOptionPane.showMessageDialog(dialog, "Another staff member already uses that license number.", "Validation Error", JOptionPane.WARNING_MESSAGE); return; }
+                if (other.id.equals(staff.id))
+                    continue;
+                if (!email.isEmpty() && email.equalsIgnoreCase(other.email)) {
+                    JOptionPane.showMessageDialog(dialog, "Another staff member already uses that email.",
+                            "Validation Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (!lic.isEmpty() && lic.equalsIgnoreCase(other.licenseNumber)) {
+                    JOptionPane.showMessageDialog(dialog, "Another staff member already uses that license number.",
+                            "Validation Error", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
             }
 
             staff.name = nm;
@@ -299,7 +377,8 @@ public class StaffPanel extends JPanel {
             staff.email = emailField.getText().trim();
             staff.licenseNumber = licenseField.getText().trim();
             staff.qualifications = qualsArea.getText().trim();
-            JOptionPane.showMessageDialog(dialog, "Staff updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(dialog, "Staff updated successfully!", "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
             dialog.dispose();
             refresh();
         });
@@ -312,24 +391,28 @@ public class StaffPanel extends JPanel {
     private void deleteStaff() {
         JTable table = getSelectedRoleTable();
         if (table == null) {
-            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a staff member to delete", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a staff member to delete", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         String staffId = model.getValueAt(row, 0).toString();
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this staff member?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this staff member?",
+                "Confirm Deletion", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             java.util.List<String> result = StaffService.delete(staffId);
             if (result.get(0).startsWith("Staff deleted")) {
-                JOptionPane.showMessageDialog(this, "Staff member deleted successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Staff member deleted successfully", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 refresh();
             } else {
                 JOptionPane.showMessageDialog(this, result.get(0), "Error", JOptionPane.ERROR_MESSAGE);
@@ -348,22 +431,31 @@ public class StaffPanel extends JPanel {
         c.insets = new Insets(8, 8, 8, 8);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        c.gridx = 0; c.gridy = 0; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0.3;
         panel.add(new JLabel("Username *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JTextField usernameField = new JTextField();
         panel.add(usernameField, c);
 
-        c.gridx = 0; c.gridy = 1; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.3;
         panel.add(new JLabel("Password *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JPasswordField passwordField = new JPasswordField();
         panel.add(passwordField, c);
 
-        c.gridx = 0; c.gridy = 2; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 2;
+        c.weightx = 0.3;
         panel.add(new JLabel("Role *"), c);
-        c.gridx = 1; c.weightx = 0.7;
-        JComboBox<String> roleCombo = new JComboBox<>(new String[]{"DOCTOR", "NURSE", "CASHIER"});
+        c.gridx = 1;
+        c.weightx = 0.7;
+        JComboBox<String> roleCombo = new JComboBox<>(new String[] { "DOCTOR", "NURSE", "CASHIER" });
         panel.add(roleCombo, c);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
@@ -377,18 +469,19 @@ public class StaffPanel extends JPanel {
 
         saveBtn.addActionListener(e -> {
             if (usernameField.getText().trim().isEmpty() || passwordField.getPassword().length == 0) {
-                JOptionPane.showMessageDialog(dialog, "Please fill all required fields", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please fill all required fields", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             java.util.List<String> result = AuthService.register(
-                usernameField.getText().trim(),
-                new String(passwordField.getPassword()),
-                roleCombo.getSelectedItem().toString()
-            );
+                    usernameField.getText().trim(),
+                    new String(passwordField.getPassword()),
+                    roleCombo.getSelectedItem().toString());
 
             if (result.get(0).startsWith("User registered")) {
-                JOptionPane.showMessageDialog(dialog, "User registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "User registered successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
                 refresh();
             } else {
@@ -404,13 +497,15 @@ public class StaffPanel extends JPanel {
     private void viewStaffDetails() {
         JTable table = getSelectedRoleTable();
         if (table == null) {
-            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a staff member", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -418,26 +513,139 @@ public class StaffPanel extends JPanel {
         String staffId = model.getValueAt(row, 0).toString();
         Staff staff = DataStore.staff.get(staffId);
 
-        if (staff == null) return;
+        if (staff == null)
+            return;
 
+        // Create detailed information panel
+        JPanel detailPanel = new JPanel();
+
+        if (staff.role == StaffRole.DOCTOR) {
+            // Enhanced detail view for doctors with photo
+            detailPanel = createDoctorDetailPanel(staff);
+        } else {
+            // Standard detail view for other staff
+            String details = String.format(
+                    "Staff ID: %s\n\n" +
+                            "Name: %s\n" +
+                            "Role: %s\n" +
+                            "Department: %s\n" +
+                            "Phone: %s\n" +
+                            "Email: %s\n" +
+                            "License #: %s\n" +
+                            "Status: Active",
+                    staff.id, staff.name, staff.role, staff.department,
+                    staff.phone == null ? "" : staff.phone,
+                    staff.email == null ? "" : staff.email, staff.licenseNumber == null ? "" : staff.licenseNumber);
+
+            detailPanel.setLayout(new BorderLayout());
+            detailPanel.add(new JLabel(details), BorderLayout.CENTER);
+        }
+
+        JOptionPane.showMessageDialog(this, detailPanel, "Staff Details - " + staffId, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+     * Create enhanced detail panel for doctors with photo, expertise, and
+     * credentials
+     */
+    private JPanel createDoctorDetailPanel(Staff doctor) {
+        JPanel panel = new JPanel(new BorderLayout(15, 15));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBackground(Color.WHITE);
+
+        // Left side: Photo
+        JPanel photoPanel = new JPanel(new BorderLayout());
+        photoPanel.setBackground(Color.WHITE);
+
+        JLabel photoLabel = new JLabel();
+        if (doctor.photoPath != null && !doctor.photoPath.isEmpty()) {
+            try {
+                ImageIcon icon = new ImageIcon(doctor.photoPath);
+                if (icon.getIconWidth() > 0) {
+                    // Scale image to 150x150
+                    Image scaledImage = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                    photoLabel.setIcon(new ImageIcon(scaledImage));
+                } else {
+                    photoLabel.setText("No Photo");
+                    photoLabel.setHorizontalAlignment(JLabel.CENTER);
+                }
+            } catch (Exception e) {
+                photoLabel.setText("Photo Error");
+                photoLabel.setHorizontalAlignment(JLabel.CENTER);
+            }
+        } else {
+            photoLabel.setText("No Photo Available");
+            photoLabel.setHorizontalAlignment(JLabel.CENTER);
+            photoLabel.setPreferredSize(new Dimension(150, 150));
+            photoLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+            photoLabel.setBackground(new Color(240, 240, 240));
+            photoLabel.setOpaque(true);
+        }
+        photoPanel.add(photoLabel, BorderLayout.CENTER);
+        photoPanel.setPreferredSize(new Dimension(170, 170));
+        panel.add(photoPanel, BorderLayout.WEST);
+
+        // Right side: Information
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBackground(Color.WHITE);
+
+        // Name and title
+        JLabel nameLabel = new JLabel(doctor.name);
+        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        infoPanel.add(nameLabel);
+
+        if (doctor.specialty != null && !doctor.specialty.isEmpty()) {
+            JLabel specialtyLabel = new JLabel(doctor.specialty);
+            specialtyLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+            specialtyLabel.setForeground(new Color(100, 100, 100));
+            infoPanel.add(specialtyLabel);
+        }
+
+        infoPanel.add(Box.createVerticalStrut(10));
+
+        // Details
         String details = String.format(
-            "Staff ID: %s\n\n" +
-            "Name: %s\n" +
-            "Role: %s\n" +
-            "Department: %s\n" +
-            "Specialization: %s\n" +
-            "Phone: %s\n" +
-            "Email: %s\n" +
-            "License #: %s\n" +
-            "Qualifications: %s\n" +
-            "Status: Active",
-            staff.id, staff.name, staff.role, staff.department,
-            staff.specialty==null?"":staff.specialty, staff.phone==null?"":staff.phone,
-            staff.email==null?"":staff.email, staff.licenseNumber==null?"":staff.licenseNumber,
-            staff.qualifications==null?"":staff.qualifications
-        );
+                "Staff ID: %s\n" +
+                        "Department: %s\n" +
+                        "License #: %s\n" +
+                        "Phone: %s\n" +
+                        "Email: %s",
+                doctor.id,
+                doctor.department == null ? "" : doctor.department,
+                doctor.licenseNumber == null ? "N/A" : doctor.licenseNumber,
+                doctor.phone == null ? "" : doctor.phone,
+                doctor.email == null ? "" : doctor.email);
 
-        JOptionPane.showMessageDialog(this, details, "Staff Details - " + staffId, JOptionPane.INFORMATION_MESSAGE);
+        JLabel detailsLabel = new JLabel("<html>" + details.replaceAll("\n", "<br>") + "</html>");
+        detailsLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoPanel.add(detailsLabel);
+
+        // Credentials section
+        if ((doctor.qualifications != null && !doctor.qualifications.isEmpty()) ||
+                (doctor.certifications != null && !doctor.certifications.isEmpty())) {
+            infoPanel.add(Box.createVerticalStrut(10));
+            JLabel credentialsHeaderLabel = new JLabel("Credentials:");
+            credentialsHeaderLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            infoPanel.add(credentialsHeaderLabel);
+
+            if (doctor.qualifications != null && !doctor.qualifications.isEmpty()) {
+                JLabel qualLabel = new JLabel("• " + doctor.qualifications);
+                qualLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+                infoPanel.add(qualLabel);
+            }
+
+            if (doctor.certifications != null && !doctor.certifications.isEmpty()) {
+                JLabel certLabel = new JLabel("• " + doctor.certifications);
+                certLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+                infoPanel.add(certLabel);
+            }
+        }
+
+        infoPanel.add(Box.createVerticalGlue());
+        panel.add(infoPanel, BorderLayout.CENTER);
+
+        return panel;
     }
 
     public void refresh() {
@@ -451,41 +659,101 @@ public class StaffPanel extends JPanel {
 
         for (Staff staff : DataStore.staff.values()) {
             String details = getStaffDetails(staff);
-            Object[] row = new Object[]{
-                staff.id,
-                staff.name,
-                staff.department,
-                details,
-                "Active",
-                staff.createdAt==null?"":staff.createdAt.toLocalDate().toString()
-            };
 
             if (staff.role == StaffRole.DOCTOR) {
+                // Doctors have 7 columns: ID, Name, Department, Expertise, Details, Status,
+                // Joined Date
+                Object[] row = new Object[] {
+                        staff.id,
+                        staff.name,
+                        staff.department,
+                        staff.specialty == null ? "" : staff.specialty, // Expertise column
+                        details,
+                        "Active",
+                        staff.createdAt == null ? "" : staff.createdAt.toLocalDate().toString()
+                };
                 doctorModel.addRow(row);
                 doctorCount++;
             } else if (staff.role == StaffRole.NURSE) {
+                // Nurses have 6 columns: ID, Name, Department, Details, Status, Joined Date
+                Object[] row = new Object[] {
+                        staff.id,
+                        staff.name,
+                        staff.department,
+                        details,
+                        "Active",
+                        staff.createdAt == null ? "" : staff.createdAt.toLocalDate().toString()
+                };
                 nurseModel.addRow(row);
                 nurseCount++;
             } else if (staff.role == StaffRole.CASHIER) {
+                // Cashiers have 6 columns: ID, Name, Department, Details, Status, Joined Date
+                Object[] row = new Object[] {
+                        staff.id,
+                        staff.name,
+                        staff.department,
+                        details,
+                        "Active",
+                        staff.createdAt == null ? "" : staff.createdAt.toLocalDate().toString()
+                };
                 cashierModel.addRow(row);
                 cashierCount++;
             }
         }
 
         String stats = String.format("Total Staff: %d | Doctors: %d | Nurses: %d | Cashiers: %d",
-            DataStore.staff.size(), doctorCount, nurseCount, cashierCount);
+                DataStore.staff.size(), doctorCount, nurseCount, cashierCount);
         statsLabel.setText(stats);
     }
 
     private String getStaffDetails(Staff staff) {
         if (staff.role == StaffRole.DOCTOR) {
-            return (staff.specialty == null ? "" : staff.specialty) + " | License: " + (staff.licenseNumber == null ? "N/A" : staff.licenseNumber);
+            return (staff.specialty == null ? "" : staff.specialty) + " | License: "
+                    + (staff.licenseNumber == null ? "N/A" : staff.licenseNumber);
         } else if (staff.role == StaffRole.NURSE) {
             return "License: " + (staff.licenseNumber == null ? "N/A" : staff.licenseNumber);
         } else if (staff.role == StaffRole.CASHIER) {
             return "Billing & Payment Processing";
         } else {
             return "Administrator";
+        }
+    }
+
+    /**
+     * Apply filters to doctor list based on selected department and specialty
+     * 
+     * @param department Selected department or null for all
+     * @param specialty  Selected specialty or null for all
+     */
+    private void applyDoctorFilters(String department, String specialty) {
+        doctorModel.setRowCount(0);
+
+        for (Staff staff : DataStore.staff.values()) {
+            if (staff.role != StaffRole.DOCTOR)
+                continue;
+
+            // Apply department filter
+            if (department != null && (staff.department == null || !staff.department.equals(department))) {
+                continue;
+            }
+
+            // Apply specialty filter
+            if (specialty != null && (staff.specialty == null || !staff.specialty.equals(specialty))) {
+                continue;
+            }
+
+            // If passed all filters, add to table
+            String details = getStaffDetails(staff);
+            Object[] row = new Object[] {
+                    staff.id,
+                    staff.name,
+                    staff.department,
+                    staff.specialty == null ? "" : staff.specialty, // Expertise column
+                    details,
+                    "Active",
+                    staff.createdAt == null ? "" : staff.createdAt.toLocalDate().toString()
+            };
+            doctorModel.addRow(row);
         }
     }
 }

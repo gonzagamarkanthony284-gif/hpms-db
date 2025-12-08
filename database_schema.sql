@@ -108,8 +108,38 @@ CREATE TABLE patient_diagnoses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id VARCHAR(20) NOT NULL,
     diagnosis TEXT NOT NULL,
+    diagnosed_by VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (diagnosed_by) REFERENCES staff(id) ON DELETE SET NULL,
+    INDEX idx_patient (patient_id),
+    INDEX idx_date (created_at)
+);
+
+-- Patient visits / arrival history
+-- Each time a patient arrives, a NEW record is created here
+-- The first arrival data remains in the patients table as a reference
+CREATE TABLE patient_visits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id VARCHAR(20) NOT NULL,
+    visit_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    registration_type VARCHAR(100) NOT NULL,
+    incident_time VARCHAR(50),
+    brought_by VARCHAR(100),
+    initial_bp VARCHAR(20),
+    initial_hr VARCHAR(20),
+    initial_spo2 VARCHAR(20),
+    chief_complaint TEXT,
+    attending_doctor VARCHAR(20),
+    diagnosis TEXT,
+    treatment_plan TEXT,
+    notes TEXT,
+    visit_status VARCHAR(50) DEFAULT 'Active',
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (attending_doctor) REFERENCES staff(id) ON DELETE SET NULL,
+    INDEX idx_patient (patient_id),
+    INDEX idx_visit_date (visit_date),
+    INDEX idx_doctor (attending_doctor)
 );
 
 -- Patient treatment plans
@@ -367,6 +397,31 @@ CREATE TABLE discharges (
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     FOREIGN KEY (discharged_by) REFERENCES staff(id) ON DELETE SET NULL,
     INDEX idx_patient (patient_id)
+);
+
+-- Patient File Attachments table (Medical Information / File Storage System)
+CREATE TABLE patient_file_attachments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id VARCHAR(20) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_type VARCHAR(100),
+    category VARCHAR(100),
+    file_size BIGINT DEFAULT 0,
+    mime_type VARCHAR(100),
+    description TEXT,
+    uploaded_by VARCHAR(100),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    file_hash VARCHAR(255),
+    is_encrypted BOOLEAN DEFAULT FALSE,
+    status ENUM('Active', 'Archived', 'Deleted') DEFAULT 'Active',
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    INDEX idx_patient (patient_id),
+    INDEX idx_category (category),
+    INDEX idx_status (status),
+    INDEX idx_uploaded_at (uploaded_at),
+    INDEX idx_patient_category (patient_id, category)
 );
 
 -- Communications table

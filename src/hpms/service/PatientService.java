@@ -173,23 +173,39 @@ public class PatientService {
             out.add("Error: Invalid patient ID");
             return out;
         }
-        // registration / arrival metadata
-        if (registrationType != null && !registrationType.trim().isEmpty())
-            p.registrationType = registrationType.trim();
-        if (p.registrationType == null || p.registrationType.trim().isEmpty())
-            p.registrationType = "Walk-in Patient";
-        if (incidentTime != null)
-            p.incidentTime = incidentTime.trim();
-        if (broughtBy != null)
-            p.broughtBy = broughtBy.trim();
-        if (initialBp != null)
-            p.initialBp = initialBp.trim();
-        if (initialHr != null)
-            p.initialHr = initialHr.trim();
-        if (initialSpo2 != null)
-            p.initialSpo2 = initialSpo2.trim();
-        if (chiefComplaint != null)
-            p.chiefComplaint = chiefComplaint.trim();
+
+        // IMPORTANT: Registration/arrival data is ONLY set on FIRST registration
+        // Subsequent arrivals should use VisitService.createVisit() instead
+        // This preserves the original arrival data forever
+        boolean isFirstArrival = (p.registrationType == null || p.registrationType.trim().isEmpty());
+
+        if (isFirstArrival) {
+            // First arrival - set the initial arrival data in patient record
+            if (registrationType != null && !registrationType.trim().isEmpty())
+                p.registrationType = registrationType.trim();
+            if (p.registrationType == null || p.registrationType.trim().isEmpty())
+                p.registrationType = "Walk-in Patient";
+            if (incidentTime != null)
+                p.incidentTime = incidentTime.trim();
+            if (broughtBy != null)
+                p.broughtBy = broughtBy.trim();
+            if (initialBp != null)
+                p.initialBp = initialBp.trim();
+            if (initialHr != null)
+                p.initialHr = initialHr.trim();
+            if (initialSpo2 != null)
+                p.initialSpo2 = initialSpo2.trim();
+            if (chiefComplaint != null)
+                p.chiefComplaint = chiefComplaint.trim();
+
+            LogManager.log("first_arrival_data_saved patient=" + id + " type=" + p.registrationType);
+        } else {
+            // Patient already has arrival data - DO NOT OVERWRITE
+            // New arrivals should be handled by VisitService.createVisit()
+            LogManager.log("edit_patient_skip_arrival_data patient=" + id + " (first arrival preserved)");
+        }
+
+        // These fields CAN be updated on subsequent edits (not arrival-specific)
         if (allergies != null)
             p.allergies = allergies.trim();
         if (medications != null)

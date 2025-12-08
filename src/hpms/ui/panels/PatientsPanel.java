@@ -569,9 +569,13 @@ public class PatientsPanel extends JPanel {
         JMenuItem viewIt = new JMenuItem("View / Edit");
         JMenuItem clinIt = new JMenuItem("Add Clinical Info");
         JMenuItem attachIt = new JMenuItem("Attach Files");
+        JMenuItem medicalFolderIt = new JMenuItem("📁 Medical Document Folder");
+        JMenuItem newVisitIt = new JMenuItem("Record New Arrival/Visit");
         popup.add(viewIt);
         popup.add(clinIt);
+        popup.add(medicalFolderIt);
         popup.add(attachIt);
+        popup.add(newVisitIt);
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent e) {
                 maybeShow(e);
@@ -617,6 +621,16 @@ public class PatientsPanel extends JPanel {
             showClinicalDialogFor(id);
             updateOverviewFromSelection(table);
         });
+        medicalFolderIt.addActionListener(e -> {
+            int i = table.getSelectedRow();
+            if (i < 0)
+                return;
+            String id = String.valueOf(table.getValueAt(i, 0));
+            Patient p = DataStore.patients.get(id);
+            if (p == null)
+                return;
+            showMedicalDocumentFolderDialog(id, p);
+        });
         attachIt.addActionListener(e -> {
             int i = table.getSelectedRow();
             if (i < 0)
@@ -635,6 +649,16 @@ public class PatientsPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Files attached: " + files.length);
                 updateOverviewFromSelection(table);
             }
+        });
+        newVisitIt.addActionListener(e -> {
+            int i = table.getSelectedRow();
+            if (i < 0)
+                return;
+            String id = String.valueOf(table.getValueAt(i, 0));
+            Patient p = DataStore.patients.get(id);
+            if (p == null)
+                return;
+            showNewVisitDialog(id, p);
         });
 
         // pagination handlers
@@ -1922,6 +1946,11 @@ public class PatientsPanel extends JPanel {
         if (p.registrationType != null && !p.registrationType.isEmpty())
             regCombo.setSelectedItem(p.registrationType);
 
+        // Make registration type non-editable in edit dialog - it cannot be changed
+        // after creation
+        regCombo.setEnabled(false);
+        regCombo.setToolTipText("Type of Arrival cannot be changed after patient creation");
+
         JPanel incidentPanel = new JPanel(new GridBagLayout());
         GridBagConstraints ipc = new GridBagConstraints();
         ipc.insets = new Insets(4, 4, 4, 4);
@@ -2127,7 +2156,7 @@ public class PatientsPanel extends JPanel {
         ic.weightx = 1.0;
         identityPanel.add(address, ic);
         // Add registration type and incident details (if needed)
-        JLabel regLbl = new JLabel("Type of Registration / Mode of Arrival (Select One)");
+        JLabel regLbl = new JLabel("Type of Registration / Mode of Arrival (Locked)");
         regLbl.setFont(Theme.APP_FONT.deriveFont(Font.BOLD, 10f));
         ic.gridy = iy;
         ic.gridx = 0;
@@ -2137,6 +2166,26 @@ public class PatientsPanel extends JPanel {
         ic.weightx = 0.5;
         identityPanel.add(regCombo, ic);
         iy++;
+
+        // Add first diagnosis display (read-only)
+        JLabel firstDiagnosisLbl = new JLabel("First Diagnosis (Locked)");
+        firstDiagnosisLbl.setFont(Theme.APP_FONT.deriveFont(Font.BOLD, 10f));
+        String firstDiagnosisText = (p.diagnoses != null && !p.diagnoses.isEmpty())
+                ? p.diagnoses.get(0)
+                : "(No diagnosis recorded)";
+        JLabel firstDiagnosisValue = new JLabel(firstDiagnosisText);
+        firstDiagnosisValue.setFont(Theme.APP_FONT.deriveFont(Font.PLAIN, 10f));
+        firstDiagnosisValue.setForeground(new Color(64, 64, 64));
+        firstDiagnosisValue.setToolTipText("First diagnosis cannot be changed after creation");
+        ic.gridy = iy;
+        ic.gridx = 0;
+        ic.weightx = 0.5;
+        identityPanel.add(firstDiagnosisLbl, ic);
+        ic.gridx = 1;
+        ic.weightx = 0.5;
+        identityPanel.add(firstDiagnosisValue, ic);
+        iy++;
+
         ic.gridy = iy++;
         ic.gridx = 0;
         ic.gridwidth = 4;
@@ -2529,9 +2578,12 @@ public class PatientsPanel extends JPanel {
         editDialog.add(scrollPane, BorderLayout.CENTER);
 
         JPanel editActions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton newVisitBtn = new JButton("📋 Record New Visit");
+        newVisitBtn.setToolTipText("Record a new arrival/visit for this patient");
         JButton saveBtn = new JButton("Save");
         JButton cancelBtn2 = new JButton("Cancel");
         editActions.add(cancelBtn2);
+        editActions.add(newVisitBtn);
         editActions.add(saveBtn);
         editDialog.add(editActions, BorderLayout.SOUTH);
 
@@ -2626,6 +2678,12 @@ public class PatientsPanel extends JPanel {
 
         cancelBtn2.addActionListener(ev -> editDialog.dispose());
 
+        newVisitBtn.addActionListener(ev -> {
+            // Open the new visit dialog for this patient
+            editDialog.dispose(); // Close the edit dialog first
+            showNewVisitDialog(id, p);
+        });
+
         // pack and ensure default size is generous so Save and other UI are visible
         editDialog.pack();
         if (editDialog.getWidth() < 900)
@@ -2669,6 +2727,408 @@ public class PatientsPanel extends JPanel {
                 refresh();
             }
         }
+    }
+
+    private void showNewVisitDialog(String patientId, Patient p) {
+        JDialog visitDialog = new JDialog((java.awt.Frame) SwingUtilities.getWindowAncestor(this),
+                "Record New Arrival/Visit - " + p.name, true);
+        visitDialog.setLayout(new BorderLayout(10, 10));
+
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(5, 5, 5, 5);
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.WEST;
+
+        int row = 0;
+
+        // Info header
+        JLabel headerLbl = new JLabel(
+                "<html><b>Recording a new visit for patient: " + p.name + " (" + patientId + ")</b><br>" +
+                        "This will create a NEW arrival record without modifying the original one.</html>");
+        headerLbl.setFont(Theme.APP_FONT.deriveFont(Font.PLAIN, 12f));
+        gc.gridx = 0;
+        gc.gridy = row++;
+        gc.gridwidth = 2;
+        mainPanel.add(headerLbl, gc);
+        gc.gridwidth = 1;
+
+        // Registration Type
+        JLabel regLbl = new JLabel("Type of Arrival:");
+        regLbl.setFont(Theme.APP_FONT.deriveFont(Font.BOLD, 11f));
+        String[] regOptions = new String[] {
+                "Walk-in Patient",
+                "Emergency Patient",
+                "Accident / Trauma Case",
+                "Referral Patient",
+                "OB / Maternity Case",
+                "Surgical Admission",
+                "Pediatric Patient",
+                "Geriatric Patient",
+                "Telemedicine / Virtual Consult"
+        };
+        JComboBox<String> regCombo = new JComboBox<>(regOptions);
+        gc.gridx = 0;
+        gc.gridy = row;
+        mainPanel.add(regLbl, gc);
+        gc.gridx = 1;
+        mainPanel.add(regCombo, gc);
+        row++;
+
+        // Incident Time
+        JLabel timeLbl = new JLabel("Time of Incident (HH:mm):");
+        JTextField timeField = new JTextField(10);
+        gc.gridx = 0;
+        gc.gridy = row;
+        mainPanel.add(timeLbl, gc);
+        gc.gridx = 1;
+        mainPanel.add(timeField, gc);
+        row++;
+
+        // Brought By
+        JLabel broughtLbl = new JLabel("Brought By:");
+        JCheckBox cbAmb = new JCheckBox("Ambulance");
+        JCheckBox cbFam = new JCheckBox("Family");
+        JCheckBox cbBy = new JCheckBox("Bystander");
+        JCheckBox cbPol = new JCheckBox("Police");
+        JPanel broughtPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        broughtPanel.add(cbAmb);
+        broughtPanel.add(cbFam);
+        broughtPanel.add(cbBy);
+        broughtPanel.add(cbPol);
+        gc.gridx = 0;
+        gc.gridy = row;
+        mainPanel.add(broughtLbl, gc);
+        gc.gridx = 1;
+        mainPanel.add(broughtPanel, gc);
+        row++;
+
+        // Vitals
+        JLabel bpLbl = new JLabel("Initial BP (Sys/Dia):");
+        JTextField bpSys = new JTextField(5);
+        JTextField bpDia = new JTextField(5);
+        JPanel bpPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        bpPanel.add(bpSys);
+        bpPanel.add(new JLabel("/"));
+        bpPanel.add(bpDia);
+        gc.gridx = 0;
+        gc.gridy = row;
+        mainPanel.add(bpLbl, gc);
+        gc.gridx = 1;
+        mainPanel.add(bpPanel, gc);
+        row++;
+
+        JLabel hrLbl = new JLabel("Heart Rate:");
+        JTextField hrField = new JTextField(10);
+        gc.gridx = 0;
+        gc.gridy = row;
+        mainPanel.add(hrLbl, gc);
+        gc.gridx = 1;
+        mainPanel.add(hrField, gc);
+        row++;
+
+        JLabel spo2Lbl = new JLabel("SpO2 (%):");
+        JTextField spo2Field = new JTextField(10);
+        gc.gridx = 0;
+        gc.gridy = row;
+        mainPanel.add(spo2Lbl, gc);
+        gc.gridx = 1;
+        mainPanel.add(spo2Field, gc);
+        row++;
+
+        // Chief Complaint
+        JLabel chiefLbl = new JLabel("Chief Complaint:");
+        JTextArea chiefArea = new JTextArea(4, 30);
+        chiefArea.setLineWrap(true);
+        chiefArea.setWrapStyleWord(true);
+        JScrollPane chiefScroll = new JScrollPane(chiefArea);
+        gc.gridx = 0;
+        gc.gridy = row;
+        gc.anchor = GridBagConstraints.NORTHWEST;
+        mainPanel.add(chiefLbl, gc);
+        gc.gridx = 1;
+        gc.anchor = GridBagConstraints.CENTER;
+        mainPanel.add(chiefScroll, gc);
+        row++;
+
+        // Attending Doctor
+        JLabel docLbl = new JLabel("Attending Doctor:");
+        JComboBox<String> docCombo = new JComboBox<>();
+        docCombo.addItem("(None)");
+        for (Staff s : DataStore.staff.values()) {
+            if (s.role == hpms.model.StaffRole.DOCTOR) {
+                docCombo.addItem(s.id + " - " + s.name);
+            }
+        }
+        gc.gridx = 0;
+        gc.gridy = row;
+        gc.anchor = GridBagConstraints.WEST;
+        mainPanel.add(docLbl, gc);
+        gc.gridx = 1;
+        mainPanel.add(docCombo, gc);
+        row++;
+
+        // Buttons
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton saveBtn = new JButton("Record Visit");
+        JButton cancelBtn = new JButton("Cancel");
+        btnPanel.add(saveBtn);
+        btnPanel.add(cancelBtn);
+
+        visitDialog.add(new JScrollPane(mainPanel), BorderLayout.CENTER);
+        visitDialog.add(btnPanel, BorderLayout.SOUTH);
+
+        saveBtn.addActionListener(ev -> {
+            String regType = String.valueOf(regCombo.getSelectedItem());
+            String incidentTime = timeField.getText().trim();
+
+            java.util.List<String> broughtList = new java.util.ArrayList<>();
+            if (cbAmb.isSelected())
+                broughtList.add("Ambulance");
+            if (cbFam.isSelected())
+                broughtList.add("Family");
+            if (cbBy.isSelected())
+                broughtList.add("Bystander");
+            if (cbPol.isSelected())
+                broughtList.add("Police");
+            String broughtBy = String.join(";", broughtList);
+
+            String initialBp = (bpSys.getText().trim().isEmpty() || bpDia.getText().trim().isEmpty()) ? ""
+                    : (bpSys.getText().trim() + "/" + bpDia.getText().trim());
+            String initialHr = hrField.getText().trim();
+            String initialSpo2 = spo2Field.getText().trim();
+            String chiefComplaint = chiefArea.getText().trim();
+
+            String doctorStr = String.valueOf(docCombo.getSelectedItem());
+            String attendingDoctor = null;
+            if (!doctorStr.equals("(None)") && doctorStr.contains(" - ")) {
+                attendingDoctor = doctorStr.split(" - ")[0];
+            }
+
+            // Create the new visit record
+            List<String> result = hpms.service.VisitService.createVisit(patientId, regType,
+                    incidentTime, broughtBy, initialBp, initialHr, initialSpo2,
+                    chiefComplaint, attendingDoctor);
+
+            showOut(result);
+            visitDialog.dispose();
+            refresh();
+        });
+
+        cancelBtn.addActionListener(ev -> visitDialog.dispose());
+
+        visitDialog.pack();
+        visitDialog.setLocationRelativeTo(this);
+        visitDialog.setVisible(true);
+    }
+
+    private void showMedicalDocumentFolderDialog(String patientId, Patient p) {
+        JDialog folderDialog = new JDialog((java.awt.Frame) SwingUtilities.getWindowAncestor(this),
+                "Medical Document Folder - " + p.name + " (" + patientId + ")", true);
+        folderDialog.setLayout(new BorderLayout(10, 10));
+        folderDialog.setSize(1000, 650);
+
+        // Create the medical document folder panel
+        hpms.ui.components.MedicalDocumentFolderPanel folderPanel = new hpms.ui.components.MedicalDocumentFolderPanel(
+                patientId);
+
+        // Wire up button actions
+        folderPanel.getUploadButton().addActionListener(ae -> {
+            javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+            fc.setMultiSelectionEnabled(false);
+            fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                    "Medical Documents (PDF, Images, DICOM)", "pdf", "jpg", "jpeg", "png", "dicom", "dcm",
+                    "docx", "xlsx", "txt"));
+
+            if (fc.showOpenDialog(folderDialog) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                java.io.File selectedFile = fc.getSelectedFile();
+
+                // Show dialog to get file type and category
+                JDialog uploadDialog = new JDialog(folderDialog, "Upload File Details", true);
+                uploadDialog.setLayout(new GridBagLayout());
+                GridBagConstraints gc = new GridBagConstraints();
+                gc.insets = new Insets(5, 5, 5, 5);
+                gc.anchor = GridBagConstraints.WEST;
+                gc.fill = GridBagConstraints.HORIZONTAL;
+
+                int row = 0;
+
+                JLabel fileNameLbl = new JLabel("File: " + selectedFile.getName());
+                fileNameLbl.setFont(Theme.APP_FONT.deriveFont(Font.BOLD, 10f));
+                gc.gridx = 0;
+                gc.gridy = row++;
+                gc.gridwidth = 2;
+                uploadDialog.add(fileNameLbl, gc);
+                gc.gridwidth = 1;
+
+                JLabel categoryLbl = new JLabel("Category:");
+                categoryLbl.setFont(Theme.APP_FONT.deriveFont(9f));
+                gc.gridx = 0;
+                gc.gridy = row;
+                uploadDialog.add(categoryLbl, gc);
+
+                JComboBox<String> categoryCombo = new JComboBox<>(
+                        hpms.service.AttachmentService.getAvailableCategories().toArray(new String[0]));
+                categoryCombo.setSelectedIndex(0);
+                gc.gridx = 1;
+                uploadDialog.add(categoryCombo, gc);
+                row++;
+
+                JLabel typeLabel = new JLabel("File Type:");
+                typeLabel.setFont(Theme.APP_FONT.deriveFont(9f));
+                gc.gridx = 0;
+                gc.gridy = row;
+                uploadDialog.add(typeLabel, gc);
+
+                JComboBox<String> typeCombo = new JComboBox<>();
+                gc.gridx = 1;
+                uploadDialog.add(typeCombo, gc);
+                row++;
+
+                JLabel descLbl = new JLabel("Description:");
+                descLbl.setFont(Theme.APP_FONT.deriveFont(9f));
+                gc.gridx = 0;
+                gc.gridy = row;
+                gc.anchor = GridBagConstraints.NORTHWEST;
+                uploadDialog.add(descLbl, gc);
+
+                JTextArea descArea = new JTextArea(3, 40);
+                descArea.setLineWrap(true);
+                descArea.setWrapStyleWord(true);
+                gc.gridx = 1;
+                gc.anchor = GridBagConstraints.CENTER;
+                uploadDialog.add(new JScrollPane(descArea), gc);
+                row++;
+
+                // Update type combo based on category selection
+                categoryCombo.addItemListener(ev -> {
+                    String selectedCategory = String.valueOf(categoryCombo.getSelectedItem());
+                    List<String> types = hpms.service.AttachmentService.getFileTypesForCategory(selectedCategory);
+                    typeCombo.removeAllItems();
+                    for (String type : types) {
+                        typeCombo.addItem(type);
+                    }
+                });
+                // Initialize type combo
+                categoryCombo.setSelectedIndex(0);
+
+                JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                JButton uploadBtn = new JButton("Upload");
+                JButton cancelBtn = new JButton("Cancel");
+                buttonPanel.add(cancelBtn);
+                buttonPanel.add(uploadBtn);
+
+                gc.gridx = 0;
+                gc.gridy = row;
+                gc.gridwidth = 2;
+                gc.anchor = GridBagConstraints.EAST;
+                uploadDialog.add(buttonPanel, gc);
+
+                uploadBtn.addActionListener(uploadAct -> {
+                    String category = String.valueOf(categoryCombo.getSelectedItem());
+                    String fileType = String.valueOf(typeCombo.getSelectedItem());
+                    String description = descArea.getText().trim();
+                    String uploadedBy = (hpms.auth.AuthService.current != null) ? hpms.auth.AuthService.current.username
+                            : "Unknown";
+
+                    List<String> result = hpms.service.AttachmentService.uploadAttachment(
+                            patientId, selectedFile.getName(), selectedFile.getAbsolutePath(),
+                            fileType, category, description, uploadedBy);
+
+                    showOut(result);
+                    folderPanel.refreshAttachments();
+                    uploadDialog.dispose();
+                });
+
+                cancelBtn.addActionListener(cancelAct -> uploadDialog.dispose());
+
+                uploadDialog.pack();
+                uploadDialog.setLocationRelativeTo(folderDialog);
+                uploadDialog.setVisible(true);
+            }
+        });
+
+        folderPanel.getViewButton().addActionListener(ae -> {
+            FileAttachment att = folderPanel.getSelectedAttachment();
+            if (att == null) {
+                JOptionPane.showMessageDialog(folderDialog, "Please select a file to preview");
+                return;
+            }
+
+            java.io.File file = new java.io.File(att.filePath);
+            if (!file.exists()) {
+                JOptionPane.showMessageDialog(folderDialog, "File not found: " + att.filePath,
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Try to open with default application
+            try {
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop.getDesktop().open(file);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(folderDialog, "Cannot open file: " + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        folderPanel.getDownloadButton().addActionListener(ae -> {
+            FileAttachment att = folderPanel.getSelectedAttachment();
+            if (att == null) {
+                JOptionPane.showMessageDialog(folderDialog, "Please select a file to download");
+                return;
+            }
+
+            javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+            fc.setSelectedFile(new java.io.File(att.fileName));
+            if (fc.showSaveDialog(folderDialog) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                java.io.File destFile = fc.getSelectedFile();
+                try {
+                    java.nio.file.Files.copy(
+                            new java.io.File(att.filePath).toPath(),
+                            destFile.toPath(),
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    JOptionPane.showMessageDialog(folderDialog,
+                            "File downloaded successfully to:\n" + destFile.getAbsolutePath());
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(folderDialog, "Error downloading file: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        folderPanel.getDeleteButton().addActionListener(ae -> {
+            FileAttachment att = folderPanel.getSelectedAttachment();
+            if (att == null) {
+                JOptionPane.showMessageDialog(folderDialog, "Please select a file to delete");
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(folderDialog,
+                    "Delete file: " + att.fileName + "?",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                List<String> result = hpms.service.AttachmentService.deleteAttachment(att.id);
+                showOut(result);
+                folderPanel.refreshAttachments();
+            }
+        });
+
+        folderDialog.add(folderPanel, BorderLayout.CENTER);
+
+        // Close button
+        JPanel closePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton closeBtn = new JButton("Close");
+        closeBtn.addActionListener(ae -> folderDialog.dispose());
+        closePanel.add(closeBtn);
+        folderDialog.add(closePanel, BorderLayout.SOUTH);
+
+        folderDialog.setLocationRelativeTo(this);
+        folderDialog.setVisible(true);
     }
 
     private void showOut(List<String> out) {

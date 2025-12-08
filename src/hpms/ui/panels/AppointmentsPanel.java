@@ -41,7 +41,8 @@ public class AppointmentsPanel extends JPanel {
         // Refresh when shown
         this.addHierarchyListener(evt -> {
             if ((evt.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0) {
-                if (this.isShowing()) SwingUtilities.invokeLater(this::refresh);
+                if (this.isShowing())
+                    SwingUtilities.invokeLater(this::refresh);
             }
         });
     }
@@ -51,8 +52,7 @@ public class AppointmentsPanel extends JPanel {
         panel.setBackground(Theme.BACKGROUND);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.BORDER),
-                BorderFactory.createEmptyBorder(0, 0, 10, 0)
-        ));
+                BorderFactory.createEmptyBorder(0, 0, 10, 0)));
 
         JLabel titleLabel = new JLabel("Appointment Management");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
@@ -64,7 +64,7 @@ public class AppointmentsPanel extends JPanel {
         JLabel doctorLabel = new JLabel("Filter Doctor:");
         doctorLabel.setForeground(Theme.FOREGROUND);
         doctorLabel.setFont(new Font("Arial", Font.BOLD, 12));
-        
+
         doctorCombo = new JComboBox<>();
         doctorCombo.addItem("-- All Doctors --");
         for (Staff staff : DataStore.staff.values()) {
@@ -88,9 +88,12 @@ public class AppointmentsPanel extends JPanel {
         JPanel panel = new JPanel(new GridLayout(3, 1, 10, 10));
         panel.setBackground(Theme.BACKGROUND);
 
-        panel.add(createSectionPanel("Today's Appointments", createTodayTable(), todayCount = new JLabel("0 appointments")));
-        panel.add(createSectionPanel("Upcoming Appointments (Next 7 Days)", createUpcomingTable(), upcomingCount = new JLabel("0 appointments")));
-        panel.add(createSectionPanel("Pending Appointments (Awaiting Confirmation)", createPendingTable(), pendingCount = new JLabel("0 pending")));
+        panel.add(createSectionPanel("Today's Appointments", createTodayTable(),
+                todayCount = new JLabel("0 appointments")));
+        panel.add(createSectionPanel("Upcoming Appointments (Next 7 Days)", createUpcomingTable(),
+                upcomingCount = new JLabel("0 appointments")));
+        panel.add(createSectionPanel("Pending Appointments (Awaiting Confirmation)", createPendingTable(),
+                pendingCount = new JLabel("0 pending")));
 
         return panel;
     }
@@ -100,8 +103,7 @@ public class AppointmentsPanel extends JPanel {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Theme.BORDER, 1),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(Color.WHITE);
@@ -120,7 +122,7 @@ public class AppointmentsPanel extends JPanel {
     }
 
     private JScrollPane createTodayTable() {
-        String[] columns = {"Patient", "Doctor", "Time", "Department", "Status"};
+        String[] columns = { "Patient", "Doctor", "Time", "Department", "Status" };
         todayModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -133,14 +135,14 @@ public class AppointmentsPanel extends JPanel {
         todayTable.getTableHeader().setBackground(new Color(220, 240, 255));
         todayTable.getTableHeader().setForeground(Theme.PRIMARY);
         todayTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 11));
-        
+
         JScrollPane scrollPane = new JScrollPane(todayTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
         return scrollPane;
     }
 
     private JScrollPane createUpcomingTable() {
-        String[] columns = {"Date", "Patient", "Doctor", "Time", "Department", "Status"};
+        String[] columns = { "Date", "Patient", "Doctor", "Time", "Department", "Status" };
         upcomingModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -153,14 +155,14 @@ public class AppointmentsPanel extends JPanel {
         upcomingTable.getTableHeader().setBackground(new Color(220, 240, 255));
         upcomingTable.getTableHeader().setForeground(Theme.PRIMARY);
         upcomingTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 11));
-        
+
         JScrollPane scrollPane = new JScrollPane(upcomingTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
         return scrollPane;
     }
 
     private JScrollPane createPendingTable() {
-        String[] columns = {"Patient", "Doctor", "Requested DateTime", "Department", "Notes", "Status"};
+        String[] columns = { "Patient", "Doctor", "Requested DateTime", "Department", "Notes", "Status" };
         pendingModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -173,7 +175,7 @@ public class AppointmentsPanel extends JPanel {
         pendingTable.getTableHeader().setBackground(new Color(255, 240, 220));
         pendingTable.getTableHeader().setForeground(new Color(200, 100, 0));
         pendingTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 11));
-        
+
         JScrollPane scrollPane = new JScrollPane(pendingTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
         return scrollPane;
@@ -245,8 +247,10 @@ public class AppointmentsPanel extends JPanel {
                 if (selectedDoctorId == null || appt.staffId.equals(selectedDoctorId)) {
                     Staff doctor = DataStore.staff.get(appt.staffId);
                     String doctorName = doctor != null ? doctor.name : appt.staffId;
-                    todayModel.addRow(new Object[]{
-                            appt.patientId,
+                    Patient patient = DataStore.patients.get(appt.patientId);
+                    String patientName = patient != null ? patient.name : appt.patientId;
+                    todayModel.addRow(new Object[] {
+                            patientName,
                             doctorName,
                             appt.dateTime.toLocalTime(),
                             appt.department,
@@ -272,9 +276,11 @@ public class AppointmentsPanel extends JPanel {
                 if (selectedDoctorId == null || appt.staffId.equals(selectedDoctorId)) {
                     Staff doctor = DataStore.staff.get(appt.staffId);
                     String doctorName = doctor != null ? doctor.name : appt.staffId;
-                    upcomingModel.addRow(new Object[]{
+                    Patient patient = DataStore.patients.get(appt.patientId);
+                    String patientName = patient != null ? patient.name : appt.patientId;
+                    upcomingModel.addRow(new Object[] {
                             apptDate,
-                            appt.patientId,
+                            patientName,
                             doctorName,
                             appt.dateTime.toLocalTime(),
                             appt.department,
@@ -297,8 +303,10 @@ public class AppointmentsPanel extends JPanel {
                 if (selectedDoctorId == null || appt.staffId.equals(selectedDoctorId)) {
                     Staff doctor = DataStore.staff.get(appt.staffId);
                     String doctorName = doctor != null ? doctor.name : appt.staffId;
-                    pendingModel.addRow(new Object[]{
-                            appt.patientId,
+                    Patient patient = DataStore.patients.get(appt.patientId);
+                    String patientName = patient != null ? patient.name : appt.patientId;
+                    pendingModel.addRow(new Object[] {
+                            patientName,
                             doctorName,
                             appt.dateTime,
                             appt.department,
@@ -313,7 +321,8 @@ public class AppointmentsPanel extends JPanel {
     }
 
     private String getSelectedDoctorId() {
-        if (doctorCombo.getSelectedIndex() <= 0) return null;
+        if (doctorCombo.getSelectedIndex() <= 0)
+            return null;
         String selected = (String) doctorCombo.getSelectedItem();
         return selected.split(" - ")[0];
     }
@@ -343,47 +352,68 @@ public class AppointmentsPanel extends JPanel {
         c.insets = new Insets(8, 8, 8, 8);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        c.gridx = 0; c.gridy = 0; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0.3;
         panel.add(new JLabel("Patient *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JComboBox<String> patientCombo = new JComboBox<>();
         DataStore.patients.forEach((id, p) -> patientCombo.addItem(id + " - " + p.name));
         panel.add(patientCombo, c);
 
-        c.gridx = 0; c.gridy = 1; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.3;
         panel.add(new JLabel("Doctor *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JComboBox<String> doctorCombo = new JComboBox<>();
         DataStore.staff.forEach((id, s) -> {
-            if (s.role == StaffRole.DOCTOR) doctorCombo.addItem(id + " - " + s.name);
+            if (s.role == StaffRole.DOCTOR)
+                doctorCombo.addItem(id + " - " + s.name);
         });
         panel.add(doctorCombo, c);
 
-        c.gridx = 0; c.gridy = 2; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 2;
+        c.weightx = 0.3;
         panel.add(new JLabel("Date *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JSpinner dateSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
         dateSpinner.setEditor(dateEditor);
         panel.add(dateSpinner, c);
 
-        c.gridx = 0; c.gridy = 3; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.weightx = 0.3;
         panel.add(new JLabel("Time *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JSpinner timeSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm");
         timeSpinner.setEditor(timeEditor);
         panel.add(timeSpinner, c);
 
-        c.gridx = 0; c.gridy = 4; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 4;
+        c.weightx = 0.3;
         panel.add(new JLabel("Department *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JComboBox<String> deptCombo = new JComboBox<>(DataStore.departments.toArray(new String[0]));
         panel.add(deptCombo, c);
 
-        c.gridx = 0; c.gridy = 5; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 5;
+        c.weightx = 0.3;
         panel.add(new JLabel("Notes"), c);
-        c.gridx = 1; c.weightx = 0.7; c.weighty = 1.0; c.fill = GridBagConstraints.BOTH;
+        c.gridx = 1;
+        c.weightx = 0.7;
+        c.weighty = 1.0;
+        c.fill = GridBagConstraints.BOTH;
         JTextArea notesArea = new JTextArea(3, 30);
         notesArea.setLineWrap(true);
         notesArea.setWrapStyleWord(true);
@@ -404,8 +434,10 @@ public class AppointmentsPanel extends JPanel {
         buttonPanel.add(saveBtn);
 
         saveBtn.addActionListener(e -> {
-            if (patientCombo.getSelectedIndex() < 0 || doctorCombo.getSelectedIndex() < 0 || deptCombo.getSelectedIndex() < 0) {
-                JOptionPane.showMessageDialog(dialog, "Please fill all required fields", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            if (patientCombo.getSelectedIndex() < 0 || doctorCombo.getSelectedIndex() < 0
+                    || deptCombo.getSelectedIndex() < 0) {
+                JOptionPane.showMessageDialog(dialog, "Please fill all required fields", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -417,7 +449,8 @@ public class AppointmentsPanel extends JPanel {
 
             java.util.List<String> result = AppointmentService.schedule(patientId, docId, date, time, dept);
             if (result.get(0).startsWith("Appointment created")) {
-                JOptionPane.showMessageDialog(dialog, "Appointment scheduled successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Appointment scheduled successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
                 refresh();
             } else {
@@ -443,7 +476,8 @@ public class AppointmentsPanel extends JPanel {
         }
 
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment to reschedule", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an appointment to reschedule", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -459,17 +493,23 @@ public class AppointmentsPanel extends JPanel {
         c.insets = new Insets(8, 8, 8, 8);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        c.gridx = 0; c.gridy = 0; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0.3;
         panel.add(new JLabel("New Date *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JSpinner dateSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
         dateSpinner.setEditor(dateEditor);
         panel.add(dateSpinner, c);
 
-        c.gridx = 0; c.gridy = 1; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.3;
         panel.add(new JLabel("New Time *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JSpinner timeSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm");
         timeSpinner.setEditor(timeEditor);
@@ -492,7 +532,8 @@ public class AppointmentsPanel extends JPanel {
 
             java.util.List<String> result = AppointmentService.reschedule(appointmentId, date, time);
             if (result.get(0).startsWith("Appointment rescheduled")) {
-                JOptionPane.showMessageDialog(dialog, "Appointment rescheduled successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Appointment rescheduled successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
                 refresh();
             } else {
@@ -518,17 +559,20 @@ public class AppointmentsPanel extends JPanel {
         }
 
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment to cancel", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an appointment to cancel", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String appointmentId = (String) selectedTable.getValueAt(row, 0);
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to cancel this appointment?", "Confirm Cancellation", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to cancel this appointment?",
+                "Confirm Cancellation", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             java.util.List<String> result = AppointmentService.cancel(appointmentId);
             if (result.get(0).startsWith("Appointment canceled")) {
-                JOptionPane.showMessageDialog(this, "Appointment cancelled successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Appointment cancelled successfully", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 refresh();
             } else {
                 JOptionPane.showMessageDialog(this, result.get(0), "Error", JOptionPane.ERROR_MESSAGE);
@@ -539,7 +583,8 @@ public class AppointmentsPanel extends JPanel {
     private void confirmPendingAppointment() {
         int row = pendingTable.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a pending appointment to confirm", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a pending appointment to confirm", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
         String patientId = (String) pendingModel.getValueAt(row, 0);
@@ -548,16 +593,26 @@ public class AppointmentsPanel extends JPanel {
         String dept = String.valueOf(pendingModel.getValueAt(row, 3));
         hpms.model.Appointment target = null;
         for (hpms.model.Appointment a : hpms.util.DataStore.appointments.values()) {
-            if (patientId.equals(a.patientId) && a.dateTime.equals(dateTime) && dept.equals(a.department)) { target = a; break; }
+            if (patientId.equals(a.patientId) && a.dateTime.equals(dateTime) && dept.equals(a.department)) {
+                target = a;
+                break;
+            }
         }
         if (target == null) {
-            JOptionPane.showMessageDialog(this, "Could not locate appointment to confirm", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Could not locate appointment to confirm", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if (target.notes != null) target.notes = target.notes.replaceAll("(?i)pending", "").trim();
-        if (target.notes == null || target.notes.isEmpty()) target.notes = "Confirmed";
-        try { hpms.util.BackupUtil.saveToDefault(); } catch (Exception ex) { }
-        JOptionPane.showMessageDialog(this, "Appointment for patient " + patientId + " confirmed!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        if (target.notes != null)
+            target.notes = target.notes.replaceAll("(?i)pending", "").trim();
+        if (target.notes == null || target.notes.isEmpty())
+            target.notes = "Confirmed";
+        try {
+            hpms.util.BackupUtil.saveToDefault();
+        } catch (Exception ex) {
+        }
+        JOptionPane.showMessageDialog(this, "Appointment for patient " + patientId + " confirmed!", "Success",
+                JOptionPane.INFORMATION_MESSAGE);
         refresh();
     }
 
@@ -577,11 +632,13 @@ public class AppointmentsPanel extends JPanel {
         }
 
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment to view", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an appointment to view", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String patientId = (String) selectedTable.getValueAt(row, selectedTable == todayTable ? 0 : (selectedTable == upcomingTable ? 1 : 0));
+        String patientId = (String) selectedTable.getValueAt(row,
+                selectedTable == todayTable ? 0 : (selectedTable == upcomingTable ? 1 : 0));
         Patient patient = DataStore.patients.get(patientId);
 
         String details = "Appointment Details:\n\n" +
@@ -603,7 +660,8 @@ public class AppointmentsPanel extends JPanel {
 
         JComboBox<String> doctorCombo = new JComboBox<>();
         DataStore.staff.forEach((id, s) -> {
-            if (s.role == StaffRole.DOCTOR) doctorCombo.addItem(id + " - " + s.name);
+            if (s.role == StaffRole.DOCTOR)
+                doctorCombo.addItem(id + " - " + s.name);
         });
 
         JSpinner dateSpinner = new JSpinner(new SpinnerDateModel());
@@ -621,19 +679,23 @@ public class AppointmentsPanel extends JPanel {
         topPanel.add(dateSpinner);
         topPanel.add(checkBtn);
 
-        DefaultTableModel availModel = new DefaultTableModel(new String[]{"Time", "Status"}, 0) {
-            public boolean isCellEditable(int r, int c) { return false; }
+        DefaultTableModel availModel = new DefaultTableModel(new String[] { "Time", "Status" }, 0) {
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
         JTable availTable = new JTable(availModel);
 
         checkBtn.addActionListener(e -> {
             if (doctorCombo.getSelectedIndex() < 0) {
-                JOptionPane.showMessageDialog(dialog, "Please select a doctor", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please select a doctor", "Selection Required",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             String docId = doctorCombo.getSelectedItem().toString().split(" - ")[0];
-            String dateStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format((java.util.Date) dateSpinner.getValue());
+            String dateStr = new java.text.SimpleDateFormat("yyyy-MM-dd")
+                    .format((java.util.Date) dateSpinner.getValue());
 
             availModel.setRowCount(0);
 
@@ -643,13 +705,14 @@ public class AppointmentsPanel extends JPanel {
                 boolean isBooked = false;
 
                 for (Appointment appt : DataStore.appointments.values()) {
-                    if (appt.staffId.equals(docId) && appt.dateTime.toLocalDate().equals(selectedDate) && appt.dateTime.toLocalTime().equals(time)) {
+                    if (appt.staffId.equals(docId) && appt.dateTime.toLocalDate().equals(selectedDate)
+                            && appt.dateTime.toLocalTime().equals(time)) {
                         isBooked = true;
                         break;
                     }
                 }
 
-                availModel.addRow(new Object[]{time.toString(), isBooked ? "Booked" : "Available"});
+                availModel.addRow(new Object[] { time.toString(), isBooked ? "Booked" : "Available" });
             }
         });
 
