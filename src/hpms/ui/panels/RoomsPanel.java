@@ -19,15 +19,19 @@ public class RoomsPanel extends JPanel {
     public RoomsPanel() {
         setLayout(new BorderLayout());
         setBackground(Theme.BG);
-        add(SectionHeader.info("Room & Bed Management", "Manage room occupancy and patient assignments"), BorderLayout.NORTH);
+        add(SectionHeader.info("Room & Bed Management", "Manage room occupancy and patient assignments"),
+                BorderLayout.NORTH);
 
         // Stats panel
         JPanel statsPanel = createStatsPanel();
         add(statsPanel, BorderLayout.BEFORE_FIRST_LINE);
 
         // Room table
-        roomModel = new DefaultTableModel(new String[]{"Room ID", "Status", "Patient", "Patient Name", "Room Type", "Floor"}, 0) {
-            public boolean isCellEditable(int r, int c) { return false; }
+        roomModel = new DefaultTableModel(
+                new String[] { "Room ID", "Status", "Patient", "Patient Name", "Room Type", "Floor" }, 0) {
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
         roomTable = new JTable(roomModel);
         roomTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -50,7 +54,13 @@ public class RoomsPanel extends JPanel {
         // keep data fresh when user navigates back to this panel
         this.addHierarchyListener(evt -> {
             if ((evt.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0) {
-                if (this.isShowing()) SwingUtilities.invokeLater(() -> { if (!DataStore.rooms.isEmpty() && roomModel.getRowCount() == 0) refresh(); else refresh(); });
+                if (this.isShowing())
+                    SwingUtilities.invokeLater(() -> {
+                        if (!DataStore.rooms.isEmpty() && roomModel.getRowCount() == 0)
+                            refresh();
+                        else
+                            refresh();
+                    });
             }
         });
     }
@@ -120,9 +130,12 @@ public class RoomsPanel extends JPanel {
         c.fill = GridBagConstraints.HORIZONTAL;
 
         // Available rooms
-        c.gridx = 0; c.gridy = 0; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0.3;
         panel.add(new JLabel("Select Room *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JComboBox<String> roomCombo = new JComboBox<>();
         for (Room r : DataStore.rooms.values()) {
             if (r.status == RoomStatus.VACANT) {
@@ -131,18 +144,34 @@ public class RoomsPanel extends JPanel {
         }
         panel.add(roomCombo, c);
 
-        // Available patients
-        c.gridx = 0; c.gridy = 1; c.weightx = 0.3;
-        panel.add(new JLabel("Select Patient *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        // Available patients (only inpatients can be assigned to rooms)
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.3;
+        panel.add(new JLabel("Select Patient (Inpatients Only) *"), c);
+        c.gridx = 1;
+        c.weightx = 0.7;
         JComboBox<String> patientCombo = new JComboBox<>();
-        DataStore.patients.forEach((id, p) -> patientCombo.addItem(id + " - " + p.name));
+        DataStore.patients.forEach((id, p) -> {
+            // Only show active inpatients
+            if (!p.isActive)
+                return;
+            PatientStatus status = PatientStatusService.getStatus(id);
+            if (status == PatientStatus.INPATIENT) {
+                patientCombo.addItem(id + " - " + p.name);
+            }
+        });
         panel.add(patientCombo, c);
 
         // Notes
-        c.gridx = 0; c.gridy = 2; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 2;
+        c.weightx = 0.3;
         panel.add(new JLabel("Notes"), c);
-        c.gridx = 1; c.weightx = 0.7; c.weighty = 1.0; c.fill = GridBagConstraints.BOTH;
+        c.gridx = 1;
+        c.weightx = 0.7;
+        c.weighty = 1.0;
+        c.fill = GridBagConstraints.BOTH;
         JTextArea notesArea = new JTextArea(3, 30);
         notesArea.setLineWrap(true);
         notesArea.setWrapStyleWord(true);
@@ -159,7 +188,8 @@ public class RoomsPanel extends JPanel {
 
         assignBtn.addActionListener(e -> {
             if (roomCombo.getSelectedIndex() < 0 || patientCombo.getSelectedIndex() < 0) {
-                JOptionPane.showMessageDialog(dialog, "Please select both room and patient", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please select both room and patient", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -168,7 +198,8 @@ public class RoomsPanel extends JPanel {
 
             java.util.List<String> result = RoomService.assign(roomId, patientId);
             if (result.get(0).startsWith("Room assigned")) {
-                JOptionPane.showMessageDialog(dialog, "Patient assigned to room successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Patient assigned to room successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
                 refresh();
             } else {
@@ -184,17 +215,20 @@ public class RoomsPanel extends JPanel {
     private void vacateRoom() {
         int row = roomTable.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a room to vacate", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a room to vacate", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String roomId = roomModel.getValueAt(row, 0).toString();
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to vacate this room?", "Confirm Vacation", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to vacate this room?",
+                "Confirm Vacation", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             java.util.List<String> result = RoomService.vacate(roomId);
             if (result.get(0).startsWith("Room vacated")) {
-                JOptionPane.showMessageDialog(this, "Room vacated successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Room vacated successfully", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 refresh();
             } else {
                 JOptionPane.showMessageDialog(this, result.get(0), "Error", JOptionPane.ERROR_MESSAGE);
@@ -205,14 +239,16 @@ public class RoomsPanel extends JPanel {
     private void transferPatient() {
         int row = roomTable.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a room with a patient to transfer", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a room with a patient to transfer", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String currentRoomId = roomModel.getValueAt(row, 0).toString();
         Room currentRoom = DataStore.rooms.get(currentRoomId);
         if (currentRoom == null || currentRoom.occupantPatientId == null) {
-            JOptionPane.showMessageDialog(this, "Selected room is not occupied", "Invalid Operation", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Selected room is not occupied", "Invalid Operation",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -226,16 +262,22 @@ public class RoomsPanel extends JPanel {
         c.insets = new Insets(8, 8, 8, 8);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        c.gridx = 0; c.gridy = 0; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0.3;
         panel.add(new JLabel("From Room"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JTextField fromRoom = new JTextField(currentRoomId);
         fromRoom.setEditable(false);
         panel.add(fromRoom, c);
 
-        c.gridx = 0; c.gridy = 1; c.weightx = 0.3;
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.3;
         panel.add(new JLabel("To Room *"), c);
-        c.gridx = 1; c.weightx = 0.7;
+        c.gridx = 1;
+        c.weightx = 0.7;
         JComboBox<String> toRoomCombo = new JComboBox<>();
         for (Room r : DataStore.rooms.values()) {
             if (r.status == RoomStatus.VACANT && !r.id.equals(currentRoomId)) {
@@ -255,7 +297,8 @@ public class RoomsPanel extends JPanel {
 
         transferBtn.addActionListener(e -> {
             if (toRoomCombo.getSelectedIndex() < 0) {
-                JOptionPane.showMessageDialog(dialog, "Please select a destination room", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please select a destination room", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -267,7 +310,8 @@ public class RoomsPanel extends JPanel {
             java.util.List<String> result = RoomService.assign(toRoomId, patientId);
 
             if (result.get(0).startsWith("Room assigned")) {
-                JOptionPane.showMessageDialog(dialog, "Patient transferred successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Patient transferred successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
                 refresh();
             } else {
@@ -283,14 +327,16 @@ public class RoomsPanel extends JPanel {
     private void viewRoomDetails() {
         int row = roomTable.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a room to view details", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a room to view details", "Selection Required",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String roomId = roomModel.getValueAt(row, 0).toString();
         Room room = DataStore.rooms.get(roomId);
 
-        if (room == null) return;
+        if (room == null)
+            return;
 
         Patient patient = null;
         if (room.occupantPatientId != null) {
@@ -298,18 +344,17 @@ public class RoomsPanel extends JPanel {
         }
 
         String details = String.format(
-            "Room ID: %s\n\n" +
-            "Status: %s\n" +
-            "Room Type: %s\n" +
-            "Floor: N/A\n\n" +
-            "Occupant: %s\n" +
-            "Patient ID: %s",
-            room.id,
-            room.status,
-            room.status,
-            patient != null ? patient.name : "Vacant",
-            room.occupantPatientId != null ? room.occupantPatientId : "N/A"
-        );
+                "Room ID: %s\n\n" +
+                        "Status: %s\n" +
+                        "Room Type: %s\n" +
+                        "Floor: N/A\n\n" +
+                        "Occupant: %s\n" +
+                        "Patient ID: %s",
+                room.id,
+                room.status,
+                room.status,
+                patient != null ? patient.name : "Vacant",
+                room.occupantPatientId != null ? room.occupantPatientId : "N/A");
 
         JOptionPane.showMessageDialog(this, details, "Room Details - " + roomId, JOptionPane.INFORMATION_MESSAGE);
     }
@@ -329,13 +374,13 @@ public class RoomsPanel extends JPanel {
             String patientName = patient != null ? patient.name : "-";
             String status = room.status.toString();
 
-            roomModel.addRow(new Object[]{
-                room.id,
-                status,
-                room.occupantPatientId != null ? room.occupantPatientId : "-",
-                patientName,
-                room.status,
-                "1"  // Default floor
+            roomModel.addRow(new Object[] {
+                    room.id,
+                    status,
+                    room.occupantPatientId != null ? room.occupantPatientId : "-",
+                    patientName,
+                    room.status,
+                    "1" // Default floor
             });
 
             if (room.status == RoomStatus.OCCUPIED) {
@@ -349,8 +394,7 @@ public class RoomsPanel extends JPanel {
         double occupancyRate = total > 0 ? (occupied * 100.0 / total) : 0;
 
         String stats = String.format("Total Rooms: %d | Occupied: %d | Vacant: %d | Occupancy Rate: %.1f%%",
-            total, occupied, vacant, occupancyRate);
+                total, occupied, vacant, occupancyRate);
         statsLabel.setText(stats);
     }
 }
-

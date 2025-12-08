@@ -8,7 +8,8 @@ import java.util.List;
 public class PatientClinicalUploadTest {
     public static void main(String[] args) throws Exception {
         // create a patient
-        List<String> out = PatientService.add("ClinicalTest", "40", "Male", "555-0000", "Test Address");
+        List<String> out = PatientService.add("ClinicalTest", "40", "1985-03-20", "Male", "555-0000", "Test Address",
+                "INPATIENT");
         System.out.println(out);
         String created = out.get(0);
         String id = created.split(" ")[2];

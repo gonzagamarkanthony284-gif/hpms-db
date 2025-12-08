@@ -60,9 +60,11 @@ CREATE TABLE patients (
     policy_holder_dob VARCHAR(20),
     policy_relationship VARCHAR(50),
     secondary_insurance VARCHAR(200),
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_name (name),
-    INDEX idx_contact (contact)
+    INDEX idx_contact (contact),
+    INDEX idx_active (is_active)
 );
 
 -- Patient attachments (for file paths)

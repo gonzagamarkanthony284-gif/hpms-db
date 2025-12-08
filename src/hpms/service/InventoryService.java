@@ -12,6 +12,6 @@ public class InventoryService {
         if (q < 0) { out.add("Error: Invalid quantity"); return out; }
         DataStore.medicineStock.put(name.trim(), q); out.add("Stock updated"); return out;
     }
-    public static List<String> summary() { List<String> out = new ArrayList<>(); for (var e : DataStore.medicineStock.entrySet()) out.add(e.getKey()+": "+e.getValue()); if (out.isEmpty()) out.add("No medicine records"); return out; }
+    public static List<String> summary() { List<String> out = new ArrayList<>(); for (java.util.Map.Entry<String, Integer> e : DataStore.medicineStock.entrySet()) out.add(e.getKey()+": "+e.getValue()); if (out.isEmpty()) out.add("No medicine records"); return out; }
 }
 

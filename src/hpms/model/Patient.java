@@ -6,9 +6,12 @@ public class Patient {
     public final String id;
     public String name;
     public int age;
+    public String birthday; // Format: YYYY-MM-DD
     public Gender gender;
     public String contact;
     public String address;
+    public String patientType = ""; // INPATIENT or OUTPATIENT - required field
+    public boolean isComplete = false; // Flag to track if all required fields are filled
     // Patient-provided / administrative fields
     public String allergies = ""; // free text or comma-separated
     public String medications = ""; // free text
@@ -22,6 +25,10 @@ public class Patient {
     public String drugUse = "";
     public String occupation = "";
 
+    // Profile photo (optional path to image). If null/empty, UI shows a
+    // placeholder.
+    public String photoPath = null;
+
     // uploaded files (paths) for records
     public java.util.List<String> attachmentPaths = new java.util.ArrayList<>();
 
@@ -31,12 +38,12 @@ public class Patient {
     public String bloodPressure = "";
     // Registration / arrival metadata
     public String registrationType = ""; // Mode of arrival / type of registration
-    public String incidentTime = "";    // if emergency / accident - time of incident (HH:mm or ISO)
-    public String broughtBy = "";       // e.g., Ambulance;Family;Bystander;Police
-    public String initialBp = "";       // e.g., "120/80"
-    public String initialHr = "";       // heart rate
-    public String initialSpo2 = "";     // SpO2 percent
-    public String chiefComplaint = "";  // initial complaint text
+    public String incidentTime = ""; // if emergency / accident - time of incident (HH:mm or ISO)
+    public String broughtBy = ""; // e.g., Ambulance;Family;Bystander;Police
+    public String initialBp = ""; // e.g., "120/80"
+    public String initialHr = ""; // heart rate
+    public String initialSpo2 = ""; // SpO2 percent
+    public String chiefComplaint = ""; // initial complaint text
     public java.util.List<String> progressNotes = new java.util.ArrayList<>();
     public java.util.List<String> labResults = new java.util.ArrayList<>();
     public java.util.List<String> radiologyReports = new java.util.ArrayList<>();
@@ -68,10 +75,23 @@ public class Patient {
     public String policyHolderDob = "";
     public String policyRelationship = "";
     public String secondaryInsurance = "";
+    public boolean isActive = true; // Deactivation flag - false means inactive
     public final LocalDateTime createdAt;
-    public Patient(String id, String name, int age, Gender gender, String contact, String address, LocalDateTime createdAt) {
-        this.id = id; this.name = name; this.age = age; this.gender = gender; this.contact = contact; this.address = address; this.createdAt = createdAt;
-        // Note: patient portal passwords are managed by AuthService and stored securely in DataStore.users
+
+    public Patient(String id, String name, int age, String birthday, Gender gender, String contact, String address,
+            LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.birthday = birthday;
+        this.gender = gender;
+        this.contact = contact;
+        this.address = address;
+        this.createdAt = createdAt;
+        this.isActive = true; // New patients are active by default
+        this.isComplete = false; // Will be set to true after validation
+        // Note: patient portal passwords are managed by AuthService and stored securely
+        // in DataStore.users
     }
 
     /**
@@ -80,12 +100,28 @@ public class Patient {
      * BMI is rounded to two decimal places.
      */
     public Double getBmi() {
-        if (heightCm == null || weightKg == null) return null;
-        if (heightCm == 0) return null;
+        if (heightCm == null || weightKg == null)
+            return null;
+        if (heightCm == 0)
+            return null;
         double heightM = heightCm / 100.0;
         double bmi = weightKg / (heightM * heightM);
         // round to two decimals
         return Math.round(bmi * 100.0) / 100.0;
     }
-}
 
+    /**
+     * Validates that all required fields are filled and updates isComplete flag.
+     * Required fields: name, age > 0, birthday, gender, contact, address,
+     * patientType
+     */
+    public void validateCompleteness() {
+        this.isComplete = name != null && !name.trim().isEmpty()
+                && age > 0
+                && birthday != null && !birthday.trim().isEmpty()
+                && gender != null
+                && contact != null && !contact.trim().isEmpty()
+                && address != null && !address.trim().isEmpty()
+                && patientType != null && !patientType.trim().isEmpty();
+    }
+}

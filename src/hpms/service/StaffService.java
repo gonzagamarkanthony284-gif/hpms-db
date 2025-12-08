@@ -69,7 +69,7 @@ public class StaffService {
         if (phone == null) return false;
         String p = phone.trim();
         // Accept digits, space, +, -, parentheses and between 7 and 25 characters
-        return p.matches("^[0-9+()\\-\s]{7,25}$");
+        return p.matches("^[0-9+()\\\\\\-\\s]{7,25}$");
     }
     public static List<String> delete(String id) {
         List<String> out = new ArrayList<>();

@@ -14,21 +14,30 @@ public class DashboardPanel extends JPanel {
     public DashboardPanel() {
         setLayout(new BorderLayout());
         setBackground(Theme.BACKGROUND);
-        add(SectionHeader.info("Dashboard", "Overview: appointments, admissions, billing summaries."), BorderLayout.NORTH);
+        add(SectionHeader.info("Dashboard", "Overview: appointments, admissions, billing summaries."),
+                BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(2, 2, 20, 20));
+        JPanel grid = new JPanel(new GridLayout(2, 3, 20, 20));
         grid.setBackground(Theme.BACKGROUND);
         grid.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         add(grid, BorderLayout.CENTER);
 
         grid.add(createCard("Patients", String.valueOf(DataStore.patients.size())));
-        long todaysAppts = DataStore.appointments.values().stream().filter(a -> a.dateTime.toLocalDate().equals(LocalDate.now())).count();
+        long todaysAppts = DataStore.appointments.values().stream()
+                .filter(a -> a.dateTime.toLocalDate().equals(LocalDate.now())).count();
         grid.add(createCard("Appointments Today", String.valueOf(todaysAppts)));
         long occupied = DataStore.rooms.values().stream().filter(r -> r.status == RoomStatus.OCCUPIED).count();
         long total = DataStore.rooms.size();
         grid.add(createCard("Bed Occupancy", occupied + "/" + total));
-        long pending = DataStore.bills.values().stream().filter(b -> !b.paid).count();
-        grid.add(createCard("Pending Bills", String.valueOf(pending)));
+
+        // Count staff by role
+        long doctors = DataStore.staff.values().stream().filter(s -> s.role == StaffRole.DOCTOR).count();
+        long nurses = DataStore.staff.values().stream().filter(s -> s.role == StaffRole.NURSE).count();
+        long cashiers = DataStore.staff.values().stream().filter(s -> s.role == StaffRole.CASHIER).count();
+
+        grid.add(createCard("Doctors", String.valueOf(doctors)));
+        grid.add(createCard("Nurses", String.valueOf(nurses)));
+        grid.add(createCard("Cashiers", String.valueOf(cashiers)));
     }
 
     private JComponent createCard(String title, String value) {
