@@ -1,7 +1,6 @@
 package hpms.ui;
 
 import hpms.ui.staff.StaffRegistrationForm;
-import hpms.ui.staff.StaffPanel;
 import hpms.auth.AuthService;
 import hpms.model.*;
 import hpms.service.*;
@@ -20,6 +19,19 @@ public class AdminGUI extends JFrame {
     private SidebarButton currentSelected;
     private final java.util.concurrent.ScheduledExecutorService autosaveScheduler = java.util.concurrent.Executors
             .newSingleThreadScheduledExecutor();
+
+    // Dashboard auto-refresh timer to keep metrics synchronized across all modules
+    private javax.swing.Timer dashboardAutoRefresh;
+
+    // Store references to panels for refresh
+    private AdminDashboardPanel adminDashboardPanel;
+    private PatientsPanel patientsPanel;
+    private StaffPanel staffPanel;
+    private AppointmentsPanel appointmentsPanel;
+    private BillingPanel billingPanel;
+    private RoomsPanel roomsPanel;
+    private ReportsPanel reportsPanel;
+    private AdministrationPanel administrationPanel;
 
     public AdminGUI() {
         // Apply global UI theme
@@ -64,15 +76,31 @@ public class AdminGUI extends JFrame {
         }
         add(sidebar, BorderLayout.WEST);
 
-        // Add admin-specific panels
-        content.add("Dashboard", new AdminDashboardPanel());
-        content.add("Patients", new PatientsPanel());
-        content.add("Staff", new StaffPanel());
-        content.add("Appointments", new AppointmentsPanel());
-        content.add("Billing", new BillingPanel());
-        content.add("Rooms", new RoomsPanel());
-        content.add("Reports", new ReportsPanel());
-        content.add("Administration", new AdministrationPanel());
+        // Add admin-specific panels with stored references for refresh
+        adminDashboardPanel = new AdminDashboardPanel();
+        content.add("Dashboard", adminDashboardPanel);
+
+        patientsPanel = new PatientsPanel();
+        content.add("Patients", patientsPanel);
+
+        staffPanel = new StaffPanel();
+        content.add("Staff", staffPanel);
+
+        appointmentsPanel = new AppointmentsPanel();
+        content.add("Appointments", appointmentsPanel);
+
+        billingPanel = new BillingPanel();
+        content.add("Billing", billingPanel);
+
+        roomsPanel = new RoomsPanel();
+        content.add("Rooms", roomsPanel);
+
+        reportsPanel = new ReportsPanel();
+        content.add("Reports", reportsPanel);
+
+        administrationPanel = new AdministrationPanel();
+        content.add("Administration", administrationPanel);
+
         content.add("Settings", new SettingsPanel());
 
         add(content, BorderLayout.CENTER);
@@ -83,6 +111,15 @@ public class AdminGUI extends JFrame {
             currentSelected = dashboardBtn;
             dashboardBtn.setSelectedState(true);
         }
+
+        // Auto-refresh dashboards every 2 seconds to reflect any cross-module changes
+        dashboardAutoRefresh = new javax.swing.Timer(2000, e -> {
+            if (this.isVisible()) {
+                refreshPanels();
+            }
+        });
+        dashboardAutoRefresh.setRepeats(true);
+        dashboardAutoRefresh.start();
 
         // Setup autosave
         autosaveScheduler.scheduleAtFixedRate(() -> {
@@ -103,10 +140,47 @@ public class AdminGUI extends JFrame {
                     autosaveScheduler.shutdownNow();
                 } catch (Exception ex) {
                 }
+                try {
+                    if (dashboardAutoRefresh != null) {
+                        dashboardAutoRefresh.stop();
+                    }
+                } catch (Exception ex) {
+                }
                 dispose();
                 System.exit(0);
             }
         });
+    }
+
+    /**
+     * Refresh all panels to ensure data synchronization across modules.
+     * Called periodically by auto-refresh timer.
+     */
+    private void refreshPanels() {
+        if (adminDashboardPanel != null) {
+            adminDashboardPanel.refresh();
+        }
+        if (patientsPanel != null) {
+            patientsPanel.refresh();
+        }
+        if (staffPanel != null) {
+            staffPanel.refresh();
+        }
+        if (appointmentsPanel != null) {
+            appointmentsPanel.refresh();
+        }
+        if (billingPanel != null) {
+            billingPanel.refresh();
+        }
+        if (roomsPanel != null) {
+            roomsPanel.refresh();
+        }
+        if (reportsPanel != null) {
+            reportsPanel.refresh();
+        }
+        if (administrationPanel != null) {
+            administrationPanel.refresh();
+        }
     }
 
     private String tooltipFor(String name) {

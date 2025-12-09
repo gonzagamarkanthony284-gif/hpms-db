@@ -99,7 +99,7 @@ public class PharmacyPanel extends JPanel {
         panel.add(searchPanel, BorderLayout.NORTH);
 
         // Table
-        String[] columns = {"ID", "Medicine Name", "Generic Name", "Manufacturer", "Price", "Stock", "Status"};
+        String[] columns = { "ID", "Medicine Name", "Generic Name", "Manufacturer", "Price", "Stock", "Status" };
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -193,7 +193,8 @@ public class PharmacyPanel extends JPanel {
         int result = JOptionPane.showConfirmDialog(this, formPanel, "Add New Medicine", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             if (nameField.getText().isEmpty() || priceField.getText().isEmpty() || stockField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fill all required fields", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please fill all required fields", "Error",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -202,7 +203,8 @@ public class PharmacyPanel extends JPanel {
                     manufacturerField.getText().trim(), Double.parseDouble(priceField.getText()));
 
             DataStore.medicines.put(id, med);
-            JOptionPane.showMessageDialog(this, "Medicine added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Medicine added successfully!", "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
             refreshTable();
         }
     }
@@ -233,7 +235,8 @@ public class PharmacyPanel extends JPanel {
             try {
                 int newQuantity = Integer.parseInt(quantityField.getText());
                 med.stockQuantity = newQuantity;
-                JOptionPane.showMessageDialog(this, "Stock updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Stock updated successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
                 refreshTable();
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Invalid quantity", "Error", JOptionPane.ERROR_MESSAGE);
@@ -263,13 +266,15 @@ public class PharmacyPanel extends JPanel {
 
         String medicineId = (String) tableModel.getValueAt(selectedRow, 0);
         DataStore.medicines.remove(medicineId);
-        JOptionPane.showMessageDialog(this, "Medicine deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Medicine deleted successfully!", "Success",
+                JOptionPane.INFORMATION_MESSAGE);
         refreshTable();
     }
 
     private void filterTable() {
         String searchText = searchField.getText().toLowerCase();
-        DefaultTableModel filteredModel = new DefaultTableModel(new Object[]{"ID", "Medicine Name", "Generic Name", "Manufacturer", "Price", "Stock", "Status"}, 0) {
+        DefaultTableModel filteredModel = new DefaultTableModel(
+                new Object[] { "ID", "Medicine Name", "Generic Name", "Manufacturer", "Price", "Stock", "Status" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -279,8 +284,8 @@ public class PharmacyPanel extends JPanel {
         for (Medicine med : DataStore.medicines.values()) {
             if (med.name.toLowerCase().contains(searchText) || med.genericName.toLowerCase().contains(searchText)) {
                 String status = med.needsRestocking() ? "LOW STOCK" : "OK";
-                filteredModel.addRow(new Object[]{med.id, med.name, med.genericName, med.manufacturer,
-                        String.format("Rs. %.2f", med.price), med.stockQuantity, status});
+                filteredModel.addRow(new Object[] { med.id, med.name, med.genericName, med.manufacturer,
+                        String.format("Rs. %.2f", med.price), med.stockQuantity, status });
             }
         }
 
@@ -299,12 +304,20 @@ public class PharmacyPanel extends JPanel {
                 status = "LOW STOCK";
                 lowStockCount++;
             }
-            tableModel.addRow(new Object[]{med.id, med.name, med.genericName, med.manufacturer,
-                    String.format("Rs. %.2f", med.price), med.stockQuantity, status});
+            tableModel.addRow(new Object[] { med.id, med.name, med.genericName, med.manufacturer,
+                    String.format("Rs. %.2f", med.price), med.stockQuantity, status });
         }
 
         totalMedicinesLabel.setText("Total Medicines: " + totalMeds);
         lowStockLabel.setText("Low Stock: " + lowStockCount);
         searchField.setText("");
+    }
+
+    /**
+     * Public refresh method to update table and statistics.
+     * Called by MainGUI/AdminGUI auto-refresh timer.
+     */
+    public void refresh() {
+        refreshTable();
     }
 }

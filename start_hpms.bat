@@ -9,8 +9,8 @@ echo.
 echo Starting application...
 echo.
 
-REM Use Java 8 explicitly
-"C:\Program Files\Java\jre1.8.0_471\bin\java.exe" -Xmx512m -cp "lib\*;bin" hpms.app.Launcher
+REM Use Java 17 explicitly
+"C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot\bin\java.exe" -Xmx512m -cp "lib\*;bin" hpms.app.Launcher
 
 echo.
 echo Application closed.

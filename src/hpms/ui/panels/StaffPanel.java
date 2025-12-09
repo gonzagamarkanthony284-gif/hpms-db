@@ -225,19 +225,48 @@ public class StaffPanel extends JPanel {
     }
 
     private void addStaffDialog() {
-        StaffRegistrationForm form = new StaffRegistrationForm();
-        form.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosed(java.awt.event.WindowEvent e) {
-                refresh();
-            }
+        // Show choice dialog for form type
+        Object[] options = { "Quick Registration", "Detailed Doctor Form", "Cancel" };
+        int choice = JOptionPane.showOptionDialog(this,
+                "Choose registration type:",
+                "Add Staff",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
 
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
-                refresh();
-            }
-        });
-        form.setVisible(true);
+        if (choice == 0) {
+            // Quick registration form
+            StaffRegistrationForm form = new StaffRegistrationForm();
+            form.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent e) {
+                    refresh();
+                }
+
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    refresh();
+                }
+            });
+            form.setVisible(true);
+        } else if (choice == 1) {
+            // Detailed doctor information form
+            hpms.ui.staff.DoctorInformationForm form = new hpms.ui.staff.DoctorInformationForm();
+            form.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent e) {
+                    refresh();
+                }
+
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    refresh();
+                }
+            });
+            form.setVisible(true);
+        }
     }
 
     private JTable getSelectedRoleTable() {

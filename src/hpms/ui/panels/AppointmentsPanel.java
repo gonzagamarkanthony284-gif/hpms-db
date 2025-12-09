@@ -225,7 +225,7 @@ public class AppointmentsPanel extends JPanel {
         return btn;
     }
 
-    private void refresh() {
+    public void refresh() {
         refreshTodayTable();
         refreshUpcomingTable();
         refreshPendingTable();

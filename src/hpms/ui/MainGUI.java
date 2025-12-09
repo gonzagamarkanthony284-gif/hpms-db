@@ -30,6 +30,9 @@ public class MainGUI extends JFrame {
     private final java.util.concurrent.ScheduledExecutorService autosaveScheduler = java.util.concurrent.Executors
             .newSingleThreadScheduledExecutor();
 
+    // Periodic dashboard auto-refresh to keep metrics in sync across modules
+    private javax.swing.Timer dashboardAutoRefresh;
+
     private final DefaultTableModel patientsModel = new DefaultTableModel(
             new String[] { "ID", "Name", "Age", "Gender", "Contact", "Address" }, 0) {
         public boolean isCellEditable(int r, int c) {
@@ -211,6 +214,16 @@ public class MainGUI extends JFrame {
 
         refreshTables();
 
+        // Auto-refresh dashboards every 2 seconds to reflect any cross-module changes
+        // (add/edit/delete/status)
+        dashboardAutoRefresh = new javax.swing.Timer(2000, e -> {
+            if (this.isVisible()) {
+                refreshTables();
+            }
+        });
+        dashboardAutoRefresh.setRepeats(true);
+        dashboardAutoRefresh.start();
+
         // periodic autosave and auto-save on close
         autosaveScheduler.scheduleAtFixedRate(() -> {
             try {
@@ -227,6 +240,12 @@ public class MainGUI extends JFrame {
                 }
                 try {
                     autosaveScheduler.shutdownNow();
+                } catch (Exception ex) {
+                }
+                try {
+                    if (dashboardAutoRefresh != null) {
+                        dashboardAutoRefresh.stop();
+                    }
                 } catch (Exception ex) {
                 }
                 dispose();
