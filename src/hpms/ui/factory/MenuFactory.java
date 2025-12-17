@@ -37,14 +37,14 @@ public class MenuFactory {
 
         // Menu items
         String[] items = {
-            "Dashboard|dashboard",
-            "My Patients|patients",
-            "Appointments|appointments",
-            "Requests|requests",
-            "Availability|availability",
-            "My Profile|profile",
-            "Change Password|password",
-            "Logout|logout"
+                "Dashboard|dashboard",
+                "My Patients|patients",
+                "Appointments|appointments",
+                "Requests|requests",
+                "Availability|availability",
+                "My Profile|profile",
+                "Change Password|password",
+                "Logout|logout"
         };
 
         for (String item : items) {
@@ -105,13 +105,13 @@ public class MenuFactory {
 
         // Menu items
         String[] items = {
-            "Dashboard|admin-dashboard",
-            "Staff Management|admin-staff",
-            "Patients|admin-patients",
-            "Billing|admin-billing",
-            "Reports|admin-reports",
-            "Settings|admin-settings",
-            "Logout|logout"
+                "Dashboard|admin-dashboard",
+                "Staff Management|admin-staff",
+                "Patients|admin-patients",
+                "Billing|admin-billing",
+                "Reports|admin-reports",
+                "Settings|admin-settings",
+                "Logout|logout"
         };
 
         for (String item : items) {
@@ -144,11 +144,11 @@ public class MenuFactory {
 
         // Menu items
         String[] items = {
-            "Dashboard|patient-dashboard",
-            "My Appointments|patient-appointments",
-            "Medical Records|patient-records",
-            "Payments|patient-payments",
-            "Logout|logout"
+                "Dashboard|patient-dashboard",
+                "My Appointments|patient-appointments",
+                "Medical Records|patient-records",
+                "Payments|patient-payments",
+                "Logout|logout"
         };
 
         for (String item : items) {

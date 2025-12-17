@@ -162,7 +162,7 @@ public class StaffProfileModal extends JDialog {
         } else {
             updatePhotoLabelFromPath(null);
         }
-        
+
         // Upload button
         uploadPhotoBtn = new JButton("Change Photo");
         uploadPhotoBtn.setFont(new Font("Arial", Font.PLAIN, 10));
@@ -173,11 +173,11 @@ public class StaffProfileModal extends JDialog {
         uploadPhotoBtn.setOpaque(true);
         uploadPhotoBtn.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
         uploadPhotoBtn.addActionListener(e -> choosePhoto());
-        
+
         // Add components to panel
         photoContainer.add(photoLabel, BorderLayout.CENTER);
         panel.add(photoContainer, BorderLayout.CENTER);
-        
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 4));
         buttonPanel.setOpaque(false);
         buttonPanel.add(uploadPhotoBtn);
@@ -523,14 +523,14 @@ public class StaffProfileModal extends JDialog {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Select Profile Picture");
         chooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif"));
-        
+
         int result = chooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = chooser.getSelectedFile();
             if (selectedFile != null) {
                 // Show loading indicator
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                
+
                 // Use a worker thread for file operations
                 new SwingWorker<Void, Void>() {
                     @Override
@@ -538,10 +538,9 @@ public class StaffProfileModal extends JDialog {
                         try {
                             // Save the photo and get the new path
                             String savedFilePath = FileService.saveProfilePicture(
-                                selectedFile, 
-                                staff.id
-                            );
-                            
+                                    selectedFile,
+                                    staff.id);
+
                             // Update staff record
                             staff.photoPath = savedFilePath;
                             DataStore.staff.put(staff.id, staff);
@@ -551,31 +550,29 @@ public class StaffProfileModal extends JDialog {
                                 StaffService.updateStaff(staff);
                             } catch (Exception ignored) {
                             }
-                            
+
                             // Update the UI on the EDT
                             SwingUtilities.invokeLater(() -> {
                                 updatePhotoLabelFromPath(savedFilePath);
                                 JOptionPane.showMessageDialog(
-                                    StaffProfileModal.this,
-                                    "Profile picture updated successfully!",
-                                    "Success",
-                                    JOptionPane.INFORMATION_MESSAGE
-                                );
+                                        StaffProfileModal.this,
+                                        "Profile picture updated successfully!",
+                                        "Success",
+                                        JOptionPane.INFORMATION_MESSAGE);
                             });
-                            
+
                         } catch (IOException ex) {
                             SwingUtilities.invokeLater(() -> {
                                 JOptionPane.showMessageDialog(
-                                    StaffProfileModal.this,
-                                    "Error uploading profile picture: " + ex.getMessage(),
-                                    "Upload Error",
-                                    JOptionPane.ERROR_MESSAGE
-                                );
+                                        StaffProfileModal.this,
+                                        "Error uploading profile picture: " + ex.getMessage(),
+                                        "Upload Error",
+                                        JOptionPane.ERROR_MESSAGE);
                             });
                         }
                         return null;
                     }
-                    
+
                     @Override
                     protected void done() {
                         setCursor(Cursor.getDefaultCursor());
@@ -603,7 +600,7 @@ public class StaffProfileModal extends JDialog {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         // Set default icon if no image or error
         Icon icon = UIManager.getIcon("FileView.directoryIcon");
         photoLabel.setIcon(icon);

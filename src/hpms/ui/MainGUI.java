@@ -115,31 +115,34 @@ public class MainGUI extends JFrame {
             hpms.auth.User u = hpms.auth.AuthService.current;
             hpms.model.Staff s = null;
             String staffId = null;
-            
+
             // Find the staff record for this doctor user
             if (u != null) {
                 System.err.println("DEBUG: Doctor login username: " + u.username);
-                System.err.println("DEBUG: Available staff IDs: " + String.join(", ", hpms.util.DataStore.staff.keySet()));
-                
+                System.err.println(
+                        "DEBUG: Available staff IDs: " + String.join(", ", hpms.util.DataStore.staff.keySet()));
+
                 // First try to find staff by username (for accounts where username = staffId)
                 s = hpms.util.DataStore.staff.get(u.username);
                 if (s != null) {
                     staffId = s.id;
                     System.err.println("DEBUG: Found staff by username: " + staffId);
                 } else {
-                    // If not found, search for staff where username might match name or other criteria
+                    // If not found, search for staff where username might match name or other
+                    // criteria
                     for (hpms.model.Staff staff : hpms.util.DataStore.staff.values()) {
-                        if (staff.role == hpms.model.StaffRole.DOCTOR && 
-                            (u.username.equalsIgnoreCase(staff.id) || 
-                             u.username.equalsIgnoreCase(staff.name.replaceAll("\\s+", "").toLowerCase()))) {
+                        if (staff.role == hpms.model.StaffRole.DOCTOR &&
+                                (u.username.equalsIgnoreCase(staff.id) ||
+                                        u.username.equalsIgnoreCase(staff.name.replaceAll("\\s+", "").toLowerCase()))) {
                             s = staff;
                             staffId = staff.id;
                             System.err.println("DEBUG: Found staff by search: " + staffId);
                             break;
                         }
                     }
-                    
-                    // If still not found, create a temporary staff record or use the first available doctor
+
+                    // If still not found, create a temporary staff record or use the first
+                    // available doctor
                     if (s == null) {
                         for (hpms.model.Staff staff : hpms.util.DataStore.staff.values()) {
                             if (staff.role == hpms.model.StaffRole.DOCTOR) {
@@ -152,7 +155,7 @@ public class MainGUI extends JFrame {
                     }
                 }
             }
-            
+
             hpms.auth.AuthSession sessionObj = new hpms.auth.AuthSession(
                     staffId != null ? staffId : (u != null ? u.username : ""),
                     u != null ? u.username : "",
@@ -629,7 +632,8 @@ public class MainGUI extends JFrame {
 
     private void addStaffDialog() {
         // Use the new StaffRegistrationForm instead of a simple JOptionPane
-        StaffRegistrationForm form = new StaffRegistrationForm(new hpms.auth.AuthSession("admin", "admin", "Administrator", hpms.model.UserRole.ADMIN, ""));
+        StaffRegistrationForm form = new StaffRegistrationForm(
+                new hpms.auth.AuthSession("admin", "admin", "Administrator", hpms.model.UserRole.ADMIN, ""));
         form.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosed(java.awt.event.WindowEvent e) {

@@ -11,11 +11,14 @@ public class PasswordUtil {
     private static final int KEY_LEN = 256;
 
     public static String generateSalt() {
-        byte[] s = new byte[16]; RAND.nextBytes(s); return Base64.getEncoder().encodeToString(s);
+        byte[] s = new byte[16];
+        RAND.nextBytes(s);
+        return Base64.getEncoder().encodeToString(s);
     }
 
     public static String hash(String plain, String salt) {
-        if (plain == null) return null;
+        if (plain == null)
+            return null;
         try {
             char[] chars = plain.toCharArray();
             byte[] saltBytes = salt == null ? new byte[0] : Base64.getDecoder().decode(salt);
@@ -33,4 +36,3 @@ public class PasswordUtil {
         }
     }
 }
-

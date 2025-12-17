@@ -543,13 +543,13 @@ public class PatientsPanel extends JPanel {
             if (hpms.auth.AuthService.current != null) {
                 String userRole = hpms.auth.AuthService.current.role.toString();
                 if (!userRole.equals("ADMIN") && !userRole.equals("FRONT_DESK")) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Only Admin and Front Desk users can change patient status", 
-                        "Access Denied", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(this,
+                            "Only Admin and Front Desk users can change patient status",
+                            "Access Denied", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
             }
-            
+
             int i = table.getSelectedRow();
             if (i < 0)
                 return;
@@ -640,7 +640,7 @@ public class PatientsPanel extends JPanel {
                 // Extract doctor ID from selected item (format: "ID - Name")
                 String selectedDoctor = String.valueOf(sid.getSelectedItem());
                 String doctorId = selectedDoctor.split(" - ")[0];
-                
+
                 java.util.List<String> out = AppointmentService.schedule(id, doctorId,
                         date.getText(), time.getText(), String.valueOf(dept.getSelectedItem()));
                 showOut(out);
@@ -1384,9 +1384,9 @@ public class PatientsPanel extends JPanel {
             // Validate phone number (10 digits only)
             String phoneNumber = phoneField.getText().trim();
             if (!hpms.util.Validators.isValidPhoneNumber(phoneNumber)) {
-                JOptionPane.showMessageDialog(dialog, 
-                    "Please enter a valid 10-digit phone number", 
-                    "Phone Validation Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog,
+                        "Please enter a valid 10-digit phone number",
+                        "Phone Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -1407,9 +1407,9 @@ public class PatientsPanel extends JPanel {
             // Validate email format
             String email = emailField.getText().trim();
             if (!email.isEmpty() && !hpms.util.Validators.isValidEmail(email)) {
-                JOptionPane.showMessageDialog(dialog, 
-                    "Please enter a valid email address", 
-                    "Email Validation Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog,
+                        "Please enter a valid email address",
+                        "Email Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -4059,9 +4059,10 @@ public class PatientsPanel extends JPanel {
             }
 
             if (!q.isEmpty()) {
-                // Enhanced search: prioritize exact ID match, then name contains, then other fields
+                // Enhanced search: prioritize exact ID match, then name contains, then other
+                // fields
                 boolean matches = false;
-                
+
                 // Exact ID match (highest priority)
                 if (q.equalsIgnoreCase(p.id)) {
                     matches = true;
@@ -4083,8 +4084,9 @@ public class PatientsPanel extends JPanel {
                         matches = true;
                     }
                 }
-                
-                if (!matches) continue;
+
+                if (!matches)
+                    continue;
             }
             if (!"All".equalsIgnoreCase(gSel)) {
                 String sel = gSel.trim().toLowerCase(Locale.ROOT);
@@ -4124,14 +4126,14 @@ public class PatientsPanel extends JPanel {
             currentPage = 1;
         int start = (currentPage - 1) * pageSize;
         int end = Math.min(start + pageSize, total);
-        
+
         // Preserve selected patient ID to restore selection after refresh
         String selectedPatientId = null;
         int selectedRow = table.getSelectedRow();
         if (selectedRow >= 0) {
             selectedPatientId = (String) table.getValueAt(selectedRow, 0);
         }
-        
+
         patientsModel.setRowCount(0);
         for (int i = start; i < end; i++) {
             Patient p = filtered.get(i);
@@ -4151,7 +4153,7 @@ public class PatientsPanel extends JPanel {
             patientsModel.addRow(new Object[] { p.id, p.name, p.age, p.gender, (r == null ? "Not Assigned" : r.id),
                     statusDisplay, reg });
         }
-        
+
         // Restore selection after table refresh
         if (selectedPatientId != null) {
             for (int i = 0; i < patientsModel.getRowCount(); i++) {
@@ -4162,7 +4164,7 @@ public class PatientsPanel extends JPanel {
                 }
             }
         }
-        
+
         if (pageInfo != null)
             pageInfo.setText("Page " + currentPage + " of " + totalPages + " (" + total + " items)");
         if (prevPage != null)
@@ -4306,7 +4308,7 @@ public class PatientsPanel extends JPanel {
                         || created.get(0).startsWith("Patient account updated"));
         if (portalOk) {
             LogManager.log("patient_portal_created " + patientId);
-            
+
             // Send email with credentials to patient
             Patient p = DataStore.patients.get(patientId);
             if (p != null) {
@@ -4325,13 +4327,12 @@ public class PatientsPanel extends JPanel {
                 String actualPassword = hpms.auth.AuthService.getLastPlaintextForUI(patientId);
                 if (patientEmail != null && hpms.util.Validators.isValidEmail(patientEmail)) {
                     if (actualPassword != null && !actualPassword.trim().isEmpty()) {
-                    EmailService.sendAccountCreationEmail(
-                        patientEmail, 
-                        patientId, 
-                        actualPassword, 
-                        "PATIENT", 
-                        p.name
-                    );
+                        EmailService.sendAccountCreationEmail(
+                                patientEmail,
+                                patientId,
+                                actualPassword,
+                                "PATIENT",
+                                p.name);
                     } else {
                         JOptionPane.showMessageDialog(this,
                                 "Patient portal account is ready, but the password could not be retrieved for emailing. Please use 'Copy Credentials'.",

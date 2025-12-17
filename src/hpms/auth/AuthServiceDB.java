@@ -190,7 +190,8 @@ public class AuthServiceDB {
 
                 LogManager.log("register " + username + " " + userRole);
                 // Log to audit database
-                hpms.util.AuditLogService.logCreate(current.username, "USER", username, "Registered new " + userRole + " user");
+                hpms.util.AuditLogService.logCreate(current.username, "USER", username,
+                        "Registered new " + userRole + " user");
                 out.add("User registered: " + username);
             }
         } catch (SQLException e) {

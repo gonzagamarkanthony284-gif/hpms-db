@@ -180,35 +180,43 @@ public class DoctorInformationForm extends JFrame {
         java.util.List<String> parts = new java.util.ArrayList<>();
         if (medicalSchoolField != null && medicalSchoolField.getText() != null) {
             String v = medicalSchoolField.getText().trim();
-            if (!v.isEmpty()) parts.add("Medical School: " + v);
+            if (!v.isEmpty())
+                parts.add("Medical School: " + v);
         }
         if (yearGraduatedField != null && yearGraduatedField.getText() != null) {
             String v = yearGraduatedField.getText().trim();
-            if (!v.isEmpty()) parts.add("Year Graduated: " + v);
+            if (!v.isEmpty())
+                parts.add("Year Graduated: " + v);
         }
         if (residencyField != null && residencyField.getText() != null) {
             String v = residencyField.getText().trim();
-            if (!v.isEmpty()) parts.add("Residency: " + v);
+            if (!v.isEmpty())
+                parts.add("Residency: " + v);
         }
         if (fellowshipField != null && fellowshipField.getText() != null) {
             String v = fellowshipField.getText().trim();
-            if (!v.isEmpty()) parts.add("Fellowship: " + v);
+            if (!v.isEmpty())
+                parts.add("Fellowship: " + v);
         }
         if (medicalEducationField != null && medicalEducationField.getText() != null) {
             String v = medicalEducationField.getText().trim();
-            if (!v.isEmpty()) parts.add("Medical Education: " + v);
+            if (!v.isEmpty())
+                parts.add("Medical Education: " + v);
         }
         if (boardExamField != null && boardExamField.getText() != null) {
             String v = boardExamField.getText().trim();
-            if (!v.isEmpty()) parts.add("Board Exam: " + v);
+            if (!v.isEmpty())
+                parts.add("Board Exam: " + v);
         }
         if (ptrField != null && ptrField.getText() != null) {
             String v = ptrField.getText().trim();
-            if (!v.isEmpty()) parts.add("PTR Number: " + v);
+            if (!v.isEmpty())
+                parts.add("PTR Number: " + v);
         }
         if (registrationIDField != null && registrationIDField.getText() != null) {
             String v = registrationIDField.getText().trim();
-            if (!v.isEmpty()) parts.add("Registration ID: " + v);
+            if (!v.isEmpty())
+                parts.add("Registration ID: " + v);
         }
         return parts.isEmpty() ? null : String.join("\n", parts);
     }
@@ -217,58 +225,85 @@ public class DoctorInformationForm extends JFrame {
         java.util.List<String> parts = new java.util.ArrayList<>();
         if (workExpInstitutionField != null && workExpInstitutionField.getText() != null) {
             String v = workExpInstitutionField.getText().trim();
-            if (!v.isEmpty()) parts.add("Institution: " + v);
+            if (!v.isEmpty())
+                parts.add("Institution: " + v);
         }
         if (workExpHospitalField != null && workExpHospitalField.getText() != null) {
             String v = workExpHospitalField.getText().trim();
-            if (!v.isEmpty()) parts.add("Hospital/Clinic: " + v);
+            if (!v.isEmpty())
+                parts.add("Hospital/Clinic: " + v);
         }
         if (workExpDurationField != null && workExpDurationField.getText() != null) {
             String v = workExpDurationField.getText().trim();
-            if (!v.isEmpty()) parts.add("Duration: " + v);
+            if (!v.isEmpty())
+                parts.add("Duration: " + v);
         }
         if (licenseExpirationField != null && licenseExpirationField.getText() != null) {
             String v = licenseExpirationField.getText().trim();
-            if (!v.isEmpty()) parts.add("License Expiration: " + v);
+            if (!v.isEmpty())
+                parts.add("License Expiration: " + v);
         }
         return parts.isEmpty() ? null : String.join("\n", parts);
     }
 
     private String joinSelectedSkills() {
         java.util.List<String> parts = new java.util.ArrayList<>();
-        if (clinicalDiagnosticsCheck != null && clinicalDiagnosticsCheck.isSelected()) parts.add("Clinical Diagnostics");
-        if (patientAssessmentCheck != null && patientAssessmentCheck.isSelected()) parts.add("Patient Assessment");
-        if (surgicalSkillsCheck != null && surgicalSkillsCheck.isSelected()) parts.add("Surgical Skills");
-        if (emergencyManagementCheck != null && emergencyManagementCheck.isSelected()) parts.add("Emergency Management");
-        if (proceduresCheck != null && proceduresCheck.isSelected()) parts.add("Procedures");
-        if (othersCheck != null && othersCheck.isSelected()) parts.add("Others");
+        if (clinicalDiagnosticsCheck != null && clinicalDiagnosticsCheck.isSelected())
+            parts.add("Clinical Diagnostics");
+        if (patientAssessmentCheck != null && patientAssessmentCheck.isSelected())
+            parts.add("Patient Assessment");
+        if (surgicalSkillsCheck != null && surgicalSkillsCheck.isSelected())
+            parts.add("Surgical Skills");
+        if (emergencyManagementCheck != null && emergencyManagementCheck.isSelected())
+            parts.add("Emergency Management");
+        if (proceduresCheck != null && proceduresCheck.isSelected())
+            parts.add("Procedures");
+        if (othersCheck != null && othersCheck.isSelected())
+            parts.add("Others");
         if (othersField != null && othersField.getText() != null) {
             String v = othersField.getText().trim();
-            if (!v.isEmpty()) parts.add(v);
+            if (!v.isEmpty())
+                parts.add(v);
         }
-        if (clinicalSkillsCheckAlt != null && clinicalSkillsCheckAlt.isSelected()) parts.add("Clinical Skills");
-        if (diagnosticsCheck != null && diagnosticsCheck.isSelected()) parts.add("Diagnostics");
-        if (teamworkCheck != null && teamworkCheck.isSelected()) parts.add("Teamwork");
-        if (patientAssessmentCheckAlt != null && patientAssessmentCheckAlt.isSelected()) parts.add("Patient Assessment");
-        if (leadershipCheck != null && leadershipCheck.isSelected()) parts.add("Leadership");
-        if (emergencyCheck != null && emergencyCheck.isSelected()) parts.add("Emergency Care");
-        if (criticalThinkingCheck != null && criticalThinkingCheck.isSelected()) parts.add("Critical Thinking");
-        if (surgicalCheck != null && surgicalCheck.isSelected()) parts.add("Surgical Skills");
-        if (proceduresCheckAlt2 != null && proceduresCheckAlt2.isSelected()) parts.add("Procedures");
-        if (specializationCheck != null && specializationCheck.isSelected()) parts.add("Specialization");
+        if (clinicalSkillsCheckAlt != null && clinicalSkillsCheckAlt.isSelected())
+            parts.add("Clinical Skills");
+        if (diagnosticsCheck != null && diagnosticsCheck.isSelected())
+            parts.add("Diagnostics");
+        if (teamworkCheck != null && teamworkCheck.isSelected())
+            parts.add("Teamwork");
+        if (patientAssessmentCheckAlt != null && patientAssessmentCheckAlt.isSelected())
+            parts.add("Patient Assessment");
+        if (leadershipCheck != null && leadershipCheck.isSelected())
+            parts.add("Leadership");
+        if (emergencyCheck != null && emergencyCheck.isSelected())
+            parts.add("Emergency Care");
+        if (criticalThinkingCheck != null && criticalThinkingCheck.isSelected())
+            parts.add("Critical Thinking");
+        if (surgicalCheck != null && surgicalCheck.isSelected())
+            parts.add("Surgical Skills");
+        if (proceduresCheckAlt2 != null && proceduresCheckAlt2.isSelected())
+            parts.add("Procedures");
+        if (specializationCheck != null && specializationCheck.isSelected())
+            parts.add("Specialization");
         return parts.isEmpty() ? null : String.join(", ", parts);
     }
 
     private String joinSelectedCompetencies() {
         java.util.List<String> parts = new java.util.ArrayList<>();
-        if (clinicalSkillsCheck != null && clinicalSkillsCheck.isSelected()) parts.add("Clinical Skills");
-        if (diagnocticsCheck != null && diagnocticsCheck.isSelected()) parts.add("Diagnostics");
-        if (surgeryCheck != null && surgeryCheck.isSelected()) parts.add("Surgery");
-        if (proceduresCheckAlt != null && proceduresCheckAlt.isSelected()) parts.add("Procedures");
-        if (copahoCheck != null && copahoCheck.isSelected()) parts.add("COPAHO");
+        if (clinicalSkillsCheck != null && clinicalSkillsCheck.isSelected())
+            parts.add("Clinical Skills");
+        if (diagnocticsCheck != null && diagnocticsCheck.isSelected())
+            parts.add("Diagnostics");
+        if (surgeryCheck != null && surgeryCheck.isSelected())
+            parts.add("Surgery");
+        if (proceduresCheckAlt != null && proceduresCheckAlt.isSelected())
+            parts.add("Procedures");
+        if (copahoCheck != null && copahoCheck.isSelected())
+            parts.add("COPAHO");
         if (copahoDtlField != null && copahoDtlField.getText() != null) {
             String v = copahoDtlField.getText().trim();
-            if (!v.isEmpty()) parts.add(v);
+            if (!v.isEmpty())
+                parts.add(v);
         }
         return parts.isEmpty() ? null : String.join(", ", parts);
     }

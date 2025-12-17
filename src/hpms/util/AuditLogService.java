@@ -9,7 +9,7 @@ import java.util.List;
  * Provides admin-only access to audit logs
  */
 public class AuditLogService {
-    
+
     /**
      * Log an action to the audit_logs table
      */
@@ -20,7 +20,8 @@ public class AuditLogService {
     /**
      * Log an action to the audit_logs table with IP address
      */
-    public static void logAction(String username, String action, String entityType, String entityId, String details, String ipAddress) {
+    public static void logAction(String username, String action, String entityType, String entityId, String details,
+            String ipAddress) {
         try (Connection conn = DBConnection.getConnection()) {
             if (conn == null) {
                 // Fallback to in-memory logging if DB unavailable
@@ -91,21 +92,20 @@ public class AuditLogService {
             }
 
             String sql = "SELECT username, action, entity_type, entity_id, details, ip_address, logged_at " +
-                        "FROM audit_logs ORDER BY logged_at DESC LIMIT ? OFFSET ?";
+                    "FROM audit_logs ORDER BY logged_at DESC LIMIT ? OFFSET ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, limit);
                 stmt.setInt(2, offset);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     AuditLogEntry entry = new AuditLogEntry(
-                        rs.getString("username"),
-                        rs.getString("action"),
-                        rs.getString("entity_type"),
-                        rs.getString("entity_id"),
-                        rs.getString("details"),
-                        rs.getString("ip_address"),
-                        rs.getTimestamp("logged_at")
-                    );
+                            rs.getString("username"),
+                            rs.getString("action"),
+                            rs.getString("entity_type"),
+                            rs.getString("entity_id"),
+                            rs.getString("details"),
+                            rs.getString("ip_address"),
+                            rs.getTimestamp("logged_at"));
                     logs.add(entry);
                 }
             }
@@ -126,21 +126,20 @@ public class AuditLogService {
             }
 
             String sql = "SELECT username, action, entity_type, entity_id, details, ip_address, logged_at " +
-                        "FROM audit_logs WHERE username = ? ORDER BY logged_at DESC LIMIT ?";
+                    "FROM audit_logs WHERE username = ? ORDER BY logged_at DESC LIMIT ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, username);
                 stmt.setInt(2, limit);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     AuditLogEntry entry = new AuditLogEntry(
-                        rs.getString("username"),
-                        rs.getString("action"),
-                        rs.getString("entity_type"),
-                        rs.getString("entity_id"),
-                        rs.getString("details"),
-                        rs.getString("ip_address"),
-                        rs.getTimestamp("logged_at")
-                    );
+                            rs.getString("username"),
+                            rs.getString("action"),
+                            rs.getString("entity_type"),
+                            rs.getString("entity_id"),
+                            rs.getString("details"),
+                            rs.getString("ip_address"),
+                            rs.getTimestamp("logged_at"));
                     logs.add(entry);
                 }
             }
@@ -162,8 +161,8 @@ public class AuditLogService {
         public final String ipAddress;
         public final Timestamp loggedAt;
 
-        public AuditLogEntry(String username, String action, String entityType, String entityId, 
-                           String details, String ipAddress, Timestamp loggedAt) {
+        public AuditLogEntry(String username, String action, String entityType, String entityId,
+                String details, String ipAddress, Timestamp loggedAt) {
             this.username = username;
             this.action = action;
             this.entityType = entityType;
@@ -174,4 +173,3 @@ public class AuditLogService {
         }
     }
 }
-

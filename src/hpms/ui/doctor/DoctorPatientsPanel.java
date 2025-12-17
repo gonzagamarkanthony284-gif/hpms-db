@@ -109,7 +109,8 @@ public class DoctorPatientsPanel extends JPanel {
             }
         }
 
-        String[] columns = { "Patient ID", "Name", "Age", "Gender", "Contact", "Critical Info", "Conditions", "Latest Note" };
+        String[] columns = { "Patient ID", "Name", "Age", "Gender", "Contact", "Critical Info", "Conditions",
+                "Latest Note" };
         Object[][] data = new Object[patientIds.size()][8];
 
         int i = 0;
@@ -216,7 +217,8 @@ public class DoctorPatientsPanel extends JPanel {
             return;
         }
         JTextArea area = new JTextArea(5, 30);
-        int r = JOptionPane.showConfirmDialog(this, new Object[] { "Critical Note", new JScrollPane(area) }, "Add Critical Info",
+        int r = JOptionPane.showConfirmDialog(this, new Object[] { "Critical Note", new JScrollPane(area) },
+                "Add Critical Info",
                 JOptionPane.OK_CANCEL_OPTION);
         if (r == JOptionPane.OK_OPTION) {
             String text = area.getText().trim();
@@ -472,27 +474,34 @@ public class DoctorPatientsPanel extends JPanel {
             }
             if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File f = fc.getSelectedFile();
-                if (f != null) field.setText(f.getAbsolutePath());
+                if (f != null)
+                    field.setText(f.getAbsolutePath());
             }
         };
 
-        xrayBrowse.addActionListener(ae -> browseInto.accept(xrayPath, new String[] { "jpg", "jpeg", "png", "dcm", "dicom" }));
+        xrayBrowse.addActionListener(
+                ae -> browseInto.accept(xrayPath, new String[] { "jpg", "jpeg", "png", "dcm", "dicom" }));
         stoolBrowse.addActionListener(ae -> browseInto.accept(stoolPath, new String[] { "pdf", "jpg", "jpeg", "png" }));
         urineBrowse.addActionListener(ae -> browseInto.accept(urinePath, new String[] { "pdf", "jpg", "jpeg", "png" }));
         bloodBrowse.addActionListener(ae -> browseInto.accept(bloodPath, new String[] { "pdf", "jpg", "jpeg", "png" }));
 
         saveBtn.addActionListener(ae -> {
             java.util.List<String> otherAttachList = null;
-            java.util.List<String> out = PatientService.addClinicalInfo(id, height.getText(), weight.getText(), bp.getText(),
+            java.util.List<String> out = PatientService.addClinicalInfo(id, height.getText(), weight.getText(),
+                    bp.getText(),
                     note.getText(), session.userId,
                     xrayPath.getText().trim().isEmpty() ? null : xrayPath.getText().trim(),
-                    String.valueOf(xrayStatus.getSelectedItem()), xNotes.getText().trim().isEmpty() ? null : xNotes.getText().trim(),
+                    String.valueOf(xrayStatus.getSelectedItem()),
+                    xNotes.getText().trim().isEmpty() ? null : xNotes.getText().trim(),
                     stoolPath.getText().trim().isEmpty() ? null : stoolPath.getText().trim(),
-                    String.valueOf(stoolStatus.getSelectedItem()), stoolNotes.getText().trim().isEmpty() ? null : stoolNotes.getText().trim(),
+                    String.valueOf(stoolStatus.getSelectedItem()),
+                    stoolNotes.getText().trim().isEmpty() ? null : stoolNotes.getText().trim(),
                     urinePath.getText().trim().isEmpty() ? null : urinePath.getText().trim(),
-                    String.valueOf(urineStatus.getSelectedItem()), urineNotes.getText().trim().isEmpty() ? null : urineNotes.getText().trim(),
+                    String.valueOf(urineStatus.getSelectedItem()),
+                    urineNotes.getText().trim().isEmpty() ? null : urineNotes.getText().trim(),
                     bloodPath.getText().trim().isEmpty() ? null : bloodPath.getText().trim(),
-                    String.valueOf(bloodStatus.getSelectedItem()), bloodNotes.getText().trim().isEmpty() ? null : bloodNotes.getText().trim(),
+                    String.valueOf(bloodStatus.getSelectedItem()),
+                    bloodNotes.getText().trim().isEmpty() ? null : bloodNotes.getText().trim(),
                     otherAttachList);
             if (out != null && !out.isEmpty() && out.get(0).startsWith("Error")) {
                 JOptionPane.showMessageDialog(this, String.join("\n", out), "Error", JOptionPane.ERROR_MESSAGE);
